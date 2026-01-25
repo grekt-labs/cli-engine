@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/grekt-labs/cli-engine/compare/v1.2.0...v1.3.0) (2026-01-25)
+
+
+### Features
+
+* **registry:** add registry module with DI support ([21b3a81](https://github.com/grekt-labs/cli-engine/commit/21b3a81d2e37a42b23b4199c380b6ca33bdf9773))
+
 # [1.2.0](https://github.com/grekt-labs/cli-engine/compare/v1.1.0...v1.2.0) (2026-01-25)
 
 
