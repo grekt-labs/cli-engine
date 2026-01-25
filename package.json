@@ -1,5 +1,5 @@
 {
-  "name": "@grekt/cli-engine",
+  "name": "@grekt-labs/cli-engine",
   "version": "1.0.0",
   "description": "Deterministic core logic for grekt CLI. Portable, testable, dependency-injected.",
   "type": "module",
