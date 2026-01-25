@@ -14,8 +14,10 @@ export * from '#/schemas';
 // Formatters (pure utilities)
 export * from '#/formatters';
 
+// Artifact (parsing, naming)
+export * from '#/artifact';
+
 // TODO: Export modules as they are migrated
-// export * from '#/artifact';
 // export * from '#/registry';
 // export * from '#/sync';
 // export * from '#/operations';
