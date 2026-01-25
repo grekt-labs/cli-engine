@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/grekt-labs/cli-engine/compare/v1.3.0...v1.4.0) (2026-01-25)
+
+
+### Features
+
+* **sync:** add sync types and constants ([da2e7c3](https://github.com/grekt-labs/cli-engine/commit/da2e7c3734d2a9bbee2be3d07b4b7ed4b8ffbc98))
+
 # [1.3.0](https://github.com/grekt-labs/cli-engine/compare/v1.2.0...v1.3.0) (2026-01-25)
 
 
