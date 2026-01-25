@@ -5,7 +5,9 @@
 
 export interface FileSystem {
   readFile(path: string): string;
+  readFileBinary(path: string): Buffer;
   writeFile(path: string, content: string): void;
+  writeFileBinary(path: string, content: Buffer): void;
   exists(path: string): boolean;
   mkdir(path: string, options?: { recursive?: boolean }): void;
   readdir(path: string): string[];
@@ -18,6 +20,10 @@ export interface FileSystem {
 
 export interface HttpClient {
   fetch(url: string, options?: RequestInit): Promise<Response>;
+}
+
+export interface ShellExecutor {
+  exec(command: string): string;
 }
 
 export interface TokenProvider {
@@ -36,6 +42,7 @@ export interface PathConfig {
 export interface EngineContext {
   fs: FileSystem;
   http: HttpClient;
+  shell: ShellExecutor;
   tokens: TokenProvider;
   paths: PathConfig;
 }

@@ -17,7 +17,9 @@ export * from '#/formatters';
 // Artifact (parsing, naming)
 export * from '#/artifact';
 
+// Registry (resolution, download, clients)
+export * from '#/registry';
+
 // TODO: Export modules as they are migrated
-// export * from '#/registry';
 // export * from '#/sync';
 // export * from '#/operations';
