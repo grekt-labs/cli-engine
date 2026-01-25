@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/grekt-labs/cli-engine/compare/v1.0.2...v1.1.0) (2026-01-25)
+
+
+### Features
+
+* add artifact module (frontmatter, naming) ([803a66d](https://github.com/grekt-labs/cli-engine/commit/803a66d92428f49c2498e9c311e81265ebec89c5))
+
 ## [1.0.2](https://github.com/grekt-labs/cli-engine/compare/v1.0.1...v1.0.2) (2026-01-25)
 
 
