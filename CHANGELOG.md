@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/grekt-labs/cli-engine/compare/v1.0.1...v1.0.2) (2026-01-25)
+
+
+### Bug Fixes
+
+* resolve path aliases in .d.ts files using tsc-alias ([66c3e8b](https://github.com/grekt-labs/cli-engine/commit/66c3e8b8948fedc492c1d0608228cb3ef06ad8d3))
+
 ## [1.0.1](https://github.com/grekt-labs/cli-engine/compare/v1.0.0...v1.0.1) (2026-01-25)
 
 
