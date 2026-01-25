@@ -20,6 +20,8 @@ export * from '#/artifact';
 // Registry (resolution, download, clients)
 export * from '#/registry';
 
+// Sync (types and constants, implementation in CLI)
+export * from '#/sync';
+
 // TODO: Export modules as they are migrated
-// export * from '#/sync';
 // export * from '#/operations';
