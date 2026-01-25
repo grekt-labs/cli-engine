@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/grekt-labs/cli-engine/compare/v1.1.0...v1.2.0) (2026-01-25)
+
+
+### Features
+
+* add integrity, scanner, lockfile modules with FileSystem injection ([57303a1](https://github.com/grekt-labs/cli-engine/commit/57303a16246e3c021c2691e44746924960ba67af))
+
 # [1.1.0](https://github.com/grekt-labs/cli-engine/compare/v1.0.2...v1.1.0) (2026-01-25)
 
 
