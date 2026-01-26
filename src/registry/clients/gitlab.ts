@@ -17,6 +17,7 @@ import type {
   DownloadResult,
   PublishResult,
 } from "../registry.types";
+import { hashDirectory, calculateIntegrity } from "#/artifact";
 
 interface GitLabPackage {
   id: number;
@@ -98,21 +99,29 @@ export class GitLabRegistryClient implements RegistryClient {
   /**
    * List all packages matching the artifact name
    */
-  private async listPackages(artifactId: string): Promise<GitLabPackage[]> {
-    const projectId = await this.getProjectId();
-    const encodedName = this.encodePackageName(artifactId);
+  private async listPackages(artifactId: string): Promise<{ data: GitLabPackage[]; error?: string }> {
+    try {
+      const projectId = await this.getProjectId();
+      const encodedName = this.encodePackageName(artifactId);
 
-    // GitLab API: GET /projects/:id/packages?package_type=generic&package_name=:name
-    const url = `https://${this.host}/api/v4/projects/${projectId}/packages?package_type=generic&package_name=${encodedName}`;
+      // GitLab API: GET /projects/:id/packages?package_type=generic&package_name=:name
+      const url = `https://${this.host}/api/v4/projects/${projectId}/packages?package_type=generic&package_name=${encodedName}`;
 
-    const response = await this.http.fetch(url, { headers: this.getHeaders() });
+      const response = await this.http.fetch(url, { headers: this.getHeaders() });
 
-    if (!response.ok) {
-      if (response.status === 404) return [];
-      throw new Error(`Failed to list packages: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        if (response.status === 404) return { data: [] };
+        return {
+          data: [],
+          error: `Failed to list packages: ${response.status} ${response.statusText}`
+        };
+      }
+
+      return { data: await response.json() };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return { data: [], error: `Failed to list packages: ${message}` };
     }
-
-    return response.json();
   }
 
   async download(
@@ -129,7 +138,10 @@ export class GitLabRegistryClient implements RegistryClient {
       if (!resolvedVersion) {
         const latest = await this.getLatestVersion(artifactId);
         if (!latest) {
-          return { success: false };
+          return {
+            success: false,
+            error: `No versions found for artifact: ${artifactId}`
+          };
         }
         resolvedVersion = latest;
       }
@@ -145,7 +157,10 @@ export class GitLabRegistryClient implements RegistryClient {
       });
 
       if (!response.ok) {
-        return { success: false };
+        return {
+          success: false,
+          error: `Failed to download tarball: ${response.status} ${response.statusText}`
+        };
       }
 
       const buffer = await response.arrayBuffer();
@@ -160,13 +175,20 @@ export class GitLabRegistryClient implements RegistryClient {
         this.fs.unlink(tempTarball);
       }
 
+      // Calculate integrity after extraction
+      const fileHashes = hashDirectory(this.fs, targetDir);
+      const integrity = calculateIntegrity(fileHashes);
+
       return {
         success: true,
         version: resolvedVersion,
         resolved: url,
+        integrity,
+        fileHashes,
       };
-    } catch {
-      return { success: false };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return { success: false, error: `Download failed: ${message}` };
     }
   }
 
@@ -233,17 +255,13 @@ export class GitLabRegistryClient implements RegistryClient {
   }
 
   async listVersions(artifactId: string): Promise<string[]> {
-    try {
-      const packages = await this.listPackages(artifactId);
+    const { data: packages } = await this.listPackages(artifactId);
 
-      // Sort by created_at descending (newest first)
-      packages.sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+    // Sort by created_at descending (newest first)
+    packages.sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
-      return packages.map(p => p.version);
-    } catch {
-      return [];
-    }
+    return packages.map(p => p.version);
   }
 }

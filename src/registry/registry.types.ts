@@ -30,6 +30,12 @@ export interface DownloadResult {
   version?: string;
   resolved?: string;
   deprecationMessage?: string;
+  /** Integrity hash of the extracted artifact (sha256:...) */
+  integrity?: string;
+  /** Per-file hashes for lockfile storage */
+  fileHashes?: Record<string, string>;
+  /** Error message if success is false */
+  error?: string;
 }
 
 /**
