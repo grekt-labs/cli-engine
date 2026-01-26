@@ -204,6 +204,15 @@ export class GitLabRegistryClient implements RegistryClient {
       };
     }
 
+    // Prevent overwriting existing versions
+    const alreadyExists = await this.versionExists(artifactId, version);
+    if (alreadyExists) {
+      return {
+        success: false,
+        error: `Version ${version} already exists for ${artifactId}. Cannot overwrite published versions.`,
+      };
+    }
+
     try {
       const projectId = await this.getProjectId();
       const encodedName = this.encodePackageName(artifactId);
