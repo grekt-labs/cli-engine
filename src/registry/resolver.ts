@@ -13,8 +13,13 @@ const DEFAULT_REGISTRY_HOST = "registry.grekt.com";
 /**
  * Parse artifact ID into scope and name
  *
+ * Supports both formats:
+ * - @scope/name (standard)
+ * - scope/name (@ is optional)
+ *
  * @example
  * parseArtifactId("@miscope/agent-tools") → { scope: "@miscope", name: "agent-tools", artifactId: "@miscope/agent-tools" }
+ * parseArtifactId("grekt/tools") → { scope: "@grekt", name: "tools", artifactId: "@grekt/tools" }
  * parseArtifactId("@scope/name@1.0.0") → { scope: "@scope", name: "name", version: "1.0.0", artifactId: "@scope/name" }
  */
 export function parseArtifactId(source: string): {
@@ -23,18 +28,19 @@ export function parseArtifactId(source: string): {
   version?: string;
   artifactId: string;
 } {
-  // Match @scope/name optionally followed by @version
-  const match = source.match(/^(@[^@/]+)\/([^@]+)(?:@(.+))?$/);
+  // Match @?scope/name optionally followed by @version (@ is optional)
+  const match = source.match(/^@?([^@/]+)\/([^@]+)(?:@(.+))?$/);
 
   if (!match) {
-    throw new Error(`Invalid artifact ID: ${source}. Expected format: @scope/name or @scope/name@version`);
+    throw new Error(`Invalid artifact ID: ${source}. Expected format: @scope/name or scope/name`);
   }
 
-  const [, scope, name, version] = match;
+  const [, scopeWithoutAt, name, version] = match;
+  const scope = `@${scopeWithoutAt}`;
   const artifactId = `${scope}/${name}`;
 
   return {
-    scope: scope!,
+    scope,
     name: name!,
     version,
     artifactId,
