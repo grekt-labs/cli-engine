@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/grekt-labs/cli-engine/compare/v1.4.0...v1.5.0) (2026-01-26)
+
+
+### Features
+
+* **registry:** add error handling and integrity calculation ([702b51d](https://github.com/grekt-labs/cli-engine/commit/702b51d4a01264b1e34d4c5309dbc28520c1366a))
+
 # [1.4.0](https://github.com/grekt-labs/cli-engine/compare/v1.3.0...v1.4.0) (2026-01-25)
 
 
