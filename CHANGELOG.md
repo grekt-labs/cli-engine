@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/grekt-labs/cli-engine/compare/v1.5.0...v1.6.0) (2026-01-26)
+
+
+### Features
+
+* **gitlab:** prevent overwriting existing versions ([95130c5](https://github.com/grekt-labs/cli-engine/commit/95130c55493ce6df17653c1b5c56edb752352756))
+
 # [1.5.0](https://github.com/grekt-labs/cli-engine/compare/v1.4.0...v1.5.0) (2026-01-26)
 
 
