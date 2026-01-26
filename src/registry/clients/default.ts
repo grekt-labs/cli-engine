@@ -13,6 +13,7 @@ import type {
   DownloadResult,
   PublishResult,
 } from "../registry.types";
+import { hashDirectory, calculateIntegrity } from "#/artifact";
 
 export class DefaultRegistryClient implements RegistryClient {
   private host: string;
@@ -39,15 +40,21 @@ export class DefaultRegistryClient implements RegistryClient {
   /**
    * Fetch artifact metadata from registry
    */
-  private async fetchMetadata(artifactId: string): Promise<ArtifactMetadata | null> {
+  private async fetchMetadata(artifactId: string): Promise<{ data: ArtifactMetadata | null; error?: string }> {
     const metadataUrl = `${this.getBaseUrl()}/${artifactId}/metadata.json`;
 
     try {
       const response = await this.http.fetch(metadataUrl);
-      if (!response.ok) return null;
-      return await response.json();
-    } catch {
-      return null;
+      if (!response.ok) {
+        return {
+          data: null,
+          error: `Failed to fetch metadata: ${response.status} ${response.statusText}`
+        };
+      }
+      return { data: await response.json() };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return { data: null, error: `Failed to fetch metadata: ${message}` };
     }
   }
 
@@ -56,9 +63,9 @@ export class DefaultRegistryClient implements RegistryClient {
     version: string | undefined,
     targetDir: string
   ): Promise<DownloadResult> {
-    const metadata = await this.fetchMetadata(artifactId);
+    const { data: metadata, error: metadataError } = await this.fetchMetadata(artifactId);
     if (!metadata) {
-      return { success: false };
+      return { success: false, error: metadataError || `Artifact not found: ${artifactId}` };
     }
 
     const resolvedVersion = version || metadata.latest;
@@ -68,7 +75,10 @@ export class DefaultRegistryClient implements RegistryClient {
     try {
       const response = await this.http.fetch(tarballUrl);
       if (!response.ok) {
-        return { success: false };
+        return {
+          success: false,
+          error: `Failed to download tarball: ${response.status} ${response.statusText}`
+        };
       }
 
       const buffer = await response.arrayBuffer();
@@ -83,14 +93,21 @@ export class DefaultRegistryClient implements RegistryClient {
         this.fs.unlink(tempTarball);
       }
 
+      // Calculate integrity after extraction
+      const fileHashes = hashDirectory(this.fs, targetDir);
+      const integrity = calculateIntegrity(fileHashes);
+
       return {
         success: true,
         version: resolvedVersion,
         resolved: tarballUrl,
         deprecationMessage,
+        integrity,
+        fileHashes,
       };
-    } catch {
-      return { success: false };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return { success: false, error: `Download failed: ${message}` };
     }
   }
 
@@ -108,12 +125,12 @@ export class DefaultRegistryClient implements RegistryClient {
   }
 
   async getLatestVersion(artifactId: string): Promise<string | null> {
-    const metadata = await this.fetchMetadata(artifactId);
+    const { data: metadata } = await this.fetchMetadata(artifactId);
     return metadata?.latest ?? null;
   }
 
   async versionExists(artifactId: string, version: string): Promise<boolean> {
-    const metadata = await this.fetchMetadata(artifactId);
+    const { data: metadata } = await this.fetchMetadata(artifactId);
     if (!metadata) return false;
 
     // Check if version exists by trying to fetch it
@@ -121,7 +138,8 @@ export class DefaultRegistryClient implements RegistryClient {
     try {
       const response = await this.http.fetch(tarballUrl, { method: "HEAD" });
       return response.ok;
-    } catch {
+    } catch (err) {
+      // HEAD request failed - version doesn't exist or network error
       return false;
     }
   }
