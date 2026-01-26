@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/grekt-labs/cli-engine/compare/v1.7.0...v1.8.0) (2026-01-26)
+
+
+### Features
+
+* **resolver:** make @ symbol optional in artifact IDs ([#4](https://github.com/grekt-labs/cli-engine/issues/4)) ([3fddca8](https://github.com/grekt-labs/cli-engine/commit/3fddca8a93a92f7c5633a706ddfe3ac1d474a195))
+
 # [1.7.0](https://github.com/grekt-labs/cli-engine/compare/v1.6.0...v1.7.0) (2026-01-26)
 
 
