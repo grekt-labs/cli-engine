@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/grekt-labs/cli-engine/compare/v1.6.0...v1.7.0) (2026-01-26)
+
+
+### Features
+
+* **gitlab:** use simple name without scope for self-hosted registries ([1311fce](https://github.com/grekt-labs/cli-engine/commit/1311fcecffc7de7f878dec8d24148bdca1193e97))
+
 # [1.6.0](https://github.com/grekt-labs/cli-engine/compare/v1.5.0...v1.6.0) (2026-01-26)
 
 
