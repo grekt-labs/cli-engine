@@ -17,6 +17,7 @@ import {
   RegistryEntrySchema,
   LocalConfigSchema,
 } from "./index";
+import { REGISTRY_HOST } from "#/constants";
 
 describe("schemas", () => {
   describe("ArtifactManifestSchema", () => {
@@ -345,8 +346,8 @@ describe("schemas", () => {
       const entry = {
         version: "1.0.0",
         integrity: "sha256:abc123",
-        source: "registry",
-        resolved: "https://registry.grekt.com/artifacts/test/1.0.0.tar.gz",
+        resolve: "registry",
+        resolved: `https://${REGISTRY_HOST}/artifacts/test/1.0.0.tar.gz`,
         files: {
           "agent.md": "sha256:def456",
           "skills/testing.md": "sha256:ghi789",
@@ -359,7 +360,7 @@ describe("schemas", () => {
       const result = LockfileEntrySchema.parse(entry);
 
       expect(result.resolved).toBe(
-        "https://registry.grekt.com/artifacts/test/1.0.0.tar.gz"
+        `https://${REGISTRY_HOST}/artifacts/test/1.0.0.tar.gz`
       );
       expect(result.files["agent.md"]).toBe("sha256:def456");
       expect(result.agent).toBe("agent.md");
