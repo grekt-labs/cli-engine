@@ -7,8 +7,9 @@
 
 import type { TokenProvider } from "#/core";
 import type { LocalConfig, ResolvedRegistry, RegistryType } from "./registry.types";
+import { ARTIFACT_ID_REGEX, REGISTRY_HOST } from "#/constants";
 
-const DEFAULT_REGISTRY_HOST = "registry.grekt.com";
+const DEFAULT_REGISTRY_HOST = REGISTRY_HOST;
 
 /**
  * Parse artifact ID into scope and name
@@ -29,7 +30,7 @@ export function parseArtifactId(source: string): {
   artifactId: string;
 } {
   // Match @?scope/name optionally followed by @version (@ is optional)
-  const match = source.match(/^@?([^@/]+)\/([^@]+)(?:@(.+))?$/);
+  const match = source.match(ARTIFACT_ID_REGEX);
 
   if (!match) {
     throw new Error(`Invalid artifact ID: ${source}. Expected format: @scope/name or scope/name`);
