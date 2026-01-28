@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/grekt-labs/cli-engine/compare/v3.0.0...v3.1.0) (2026-01-28)
+
+
+### Features
+
+* **versioning:** add semantic versioning utilities ([#9](https://github.com/grekt-labs/cli-engine/issues/9)) ([ecda09f](https://github.com/grekt-labs/cli-engine/commit/ecda09fa02edcaa3e256a7aa0c71b5aca309d992))
+
 # [3.0.0](https://github.com/grekt-labs/cli-engine/compare/v2.0.1...v3.0.0) (2026-01-28)
 
 
