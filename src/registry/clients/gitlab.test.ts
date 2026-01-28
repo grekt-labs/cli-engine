@@ -272,12 +272,14 @@ describe("GitLabRegistryClient", () => {
   });
 
   describe("listVersions", () => {
-    test("returns sorted versions (newest first)", async () => {
+    test("returns versions sorted by semver (not by created_at)", async () => {
       const projectInfo = { id: 12345 };
+      // created_at order: 1.0.0, 10.0.0, 2.0.0
+      // semver order: 10.0.0, 2.0.0, 1.0.0
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
-        { id: 3, name: "artifact", version: "3.0.0", package_type: "generic", created_at: "2024-03-01T00:00:00Z" },
-        { id: 2, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
+        { id: 2, name: "artifact", version: "10.0.0", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
+        { id: 3, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-03-01T00:00:00Z" },
       ];
 
       const { client } = createClient(
@@ -290,7 +292,29 @@ describe("GitLabRegistryClient", () => {
 
       const result = await client.listVersions("@scope/artifact");
 
-      expect(result).toEqual(["3.0.0", "2.0.0", "1.0.0"]);
+      // Should be sorted by semver, not created_at
+      expect(result).toEqual(["10.0.0", "2.0.0", "1.0.0"]);
+    });
+
+    test("filters out invalid semver versions", async () => {
+      const projectInfo = { id: 12345 };
+      const packages = [
+        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
+        { id: 2, name: "artifact", version: "banana", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
+        { id: 3, name: "artifact", version: "v2.0.0", package_type: "generic", created_at: "2024-03-01T00:00:00Z" },
+      ];
+
+      const { client } = createClient(
+        { host: "gitlab.com", project: "group/project" },
+        new Map([
+          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
+          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+        ])
+      );
+
+      const result = await client.listVersions("@scope/artifact");
+
+      expect(result).toEqual(["1.0.0"]);
     });
 
     test("returns empty array when no packages found", async () => {
@@ -311,11 +335,14 @@ describe("GitLabRegistryClient", () => {
   });
 
   describe("getLatestVersion", () => {
-    test("returns newest version", async () => {
+    test("returns highest semver version (not most recently published)", async () => {
       const projectInfo = { id: 12345 };
+      // 10.0.0 was published first, 2.0.0 was published last
+      // Latest should be 10.0.0 (highest semver), not 2.0.0 (most recent)
       const packages = [
-        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
-        { id: 2, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
+        { id: 1, name: "artifact", version: "10.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
+        { id: 2, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
+        { id: 3, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-03-01T00:00:00Z" },
       ];
 
       const { client } = createClient(
@@ -328,7 +355,7 @@ describe("GitLabRegistryClient", () => {
 
       const result = await client.getLatestVersion("@scope/artifact");
 
-      expect(result).toBe("2.0.0");
+      expect(result).toBe("10.0.0");
     });
 
     test("returns null when no versions exist", async () => {
@@ -386,6 +413,70 @@ describe("GitLabRegistryClient", () => {
       const result = await client.versionExists("@scope/artifact", "3.0.0");
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe("getArtifactInfo", () => {
+    test("returns null when no packages found", async () => {
+      const projectInfo = { id: 12345 };
+
+      const { client } = createClient(
+        { host: "gitlab.com", project: "group/project" },
+        new Map([
+          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
+          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=missing", jsonResponse([])],
+        ])
+      );
+
+      const result = await client.getArtifactInfo("@scope/missing");
+
+      expect(result).toBeNull();
+    });
+
+    test("returns artifact info with versions sorted by semver", async () => {
+      const projectInfo = { id: 12345 };
+      const packages = [
+        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
+        { id: 2, name: "artifact", version: "10.0.0", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
+        { id: 3, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-03-01T00:00:00Z" },
+      ];
+
+      const { client } = createClient(
+        { host: "gitlab.com", project: "group/project" },
+        new Map([
+          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
+          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+        ])
+      );
+
+      const result = await client.getArtifactInfo("@scope/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.artifactId).toBe("@scope/artifact");
+      expect(result!.latestVersion).toBe("10.0.0");
+      expect(result!.versions).toHaveLength(3);
+      expect(result!.versions[0].version).toBe("10.0.0");
+      expect(result!.versions[1].version).toBe("2.0.0");
+      expect(result!.versions[2].version).toBe("1.0.0");
+    });
+
+    test("includes publishedAt from created_at", async () => {
+      const projectInfo = { id: 12345 };
+      const packages = [
+        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-15T10:30:00Z" },
+      ];
+
+      const { client } = createClient(
+        { host: "gitlab.com", project: "group/project" },
+        new Map([
+          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
+          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+        ])
+      );
+
+      const result = await client.getArtifactInfo("@scope/artifact");
+
+      expect(result!.versions[0].publishedAt).toBe("2024-01-15T10:30:00Z");
     });
   });
 

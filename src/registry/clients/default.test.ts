@@ -278,12 +278,136 @@ describe("DefaultRegistryClient", () => {
   });
 
   describe("listVersions", () => {
-    test("returns empty array", async () => {
-      const { client } = createClient();
+    test("returns empty array when no versions in metadata", async () => {
+      const metadata: ArtifactMetadata = {
+        name: "@scope/artifact",
+        latest: "1.0.0",
+        deprecated: {},
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+      };
+
+      const { client } = createClient(
+        "registry.grekt.com",
+        new Map([
+          ["https://registry.grekt.com/@scope/artifact/metadata.json", jsonResponse(metadata)],
+        ])
+      );
 
       const result = await client.listVersions("@scope/artifact");
 
       expect(result).toEqual([]);
+    });
+
+    test("returns versions sorted by semver descending", async () => {
+      const metadata: ArtifactMetadata = {
+        name: "@scope/artifact",
+        latest: "10.0.0",
+        versions: ["1.0.0", "2.0.0", "10.0.0", "1.5.0"],
+        deprecated: {},
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+      };
+
+      const { client } = createClient(
+        "registry.grekt.com",
+        new Map([
+          ["https://registry.grekt.com/@scope/artifact/metadata.json", jsonResponse(metadata)],
+        ])
+      );
+
+      const result = await client.listVersions("@scope/artifact");
+
+      expect(result).toEqual(["10.0.0", "2.0.0", "1.5.0", "1.0.0"]);
+    });
+
+    test("filters out invalid semver versions", async () => {
+      const metadata: ArtifactMetadata = {
+        name: "@scope/artifact",
+        latest: "2.0.0",
+        versions: ["1.0.0", "banana", "2.0.0", "v3.0.0"],
+        deprecated: {},
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+      };
+
+      const { client } = createClient(
+        "registry.grekt.com",
+        new Map([
+          ["https://registry.grekt.com/@scope/artifact/metadata.json", jsonResponse(metadata)],
+        ])
+      );
+
+      const result = await client.listVersions("@scope/artifact");
+
+      expect(result).toEqual(["2.0.0", "1.0.0"]);
+    });
+  });
+
+  describe("getArtifactInfo", () => {
+    test("returns null when artifact not found", async () => {
+      const { client } = createClient(
+        "registry.grekt.com",
+        new Map([
+          ["https://registry.grekt.com/@scope/missing/metadata.json", errorResponse(404, "Not Found")],
+        ])
+      );
+
+      const result = await client.getArtifactInfo("@scope/missing");
+
+      expect(result).toBeNull();
+    });
+
+    test("returns artifact info with versions sorted by semver", async () => {
+      const metadata: ArtifactMetadata = {
+        name: "@scope/artifact",
+        latest: "1.0.0",
+        versions: ["1.0.0", "2.0.0", "10.0.0"],
+        deprecated: { "1.0.0": "Use 2.0.0 instead" },
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-06-01T00:00:00Z",
+      };
+
+      const { client } = createClient(
+        "registry.grekt.com",
+        new Map([
+          ["https://registry.grekt.com/@scope/artifact/metadata.json", jsonResponse(metadata)],
+        ])
+      );
+
+      const result = await client.getArtifactInfo("@scope/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.artifactId).toBe("@scope/artifact");
+      expect(result!.latestVersion).toBe("10.0.0");
+      expect(result!.versions).toHaveLength(3);
+      expect(result!.versions[0].version).toBe("10.0.0");
+      expect(result!.versions[2].version).toBe("1.0.0");
+      expect(result!.versions[2].deprecated).toBe("Use 2.0.0 instead");
+      expect(result!.createdAt).toBe("2024-01-01T00:00:00Z");
+      expect(result!.updatedAt).toBe("2024-06-01T00:00:00Z");
+    });
+
+    test("uses highest semver as latest even if metadata.latest differs", async () => {
+      const metadata: ArtifactMetadata = {
+        name: "@scope/artifact",
+        latest: "1.0.0",
+        versions: ["1.0.0", "5.0.0", "2.0.0"],
+        deprecated: {},
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+      };
+
+      const { client } = createClient(
+        "registry.grekt.com",
+        new Map([
+          ["https://registry.grekt.com/@scope/artifact/metadata.json", jsonResponse(metadata)],
+        ])
+      );
+
+      const result = await client.getArtifactInfo("@scope/artifact");
+
+      expect(result!.latestVersion).toBe("5.0.0");
     });
   });
 });

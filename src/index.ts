@@ -26,5 +26,8 @@ export * from '#/sync';
 // Artifact Index (lazy loading index generation)
 export * from '#/artifactIndex';
 
+// Version utilities (semver validation, comparison)
+export * from '#/version';
+
 // TODO: Export modules as they are migrated
 // export * from '#/operations';

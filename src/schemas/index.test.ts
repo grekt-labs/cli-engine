@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import {
+  SemverSchema,
   ArtifactManifestSchema,
   ArtifactFrontmatterSchema,
   CustomTargetSchema,
@@ -20,6 +21,21 @@ import {
 import { REGISTRY_HOST } from "#/constants";
 
 describe("schemas", () => {
+  describe("SemverSchema", () => {
+    test("accepts valid semver versions", () => {
+      expect(SemverSchema.parse("1.0.0")).toBe("1.0.0");
+      expect(SemverSchema.parse("2.1.0-beta.1")).toBe("2.1.0-beta.1");
+      expect(SemverSchema.parse("1.0.0+build")).toBe("1.0.0+build");
+    });
+
+    test("rejects invalid versions", () => {
+      expect(() => SemverSchema.parse("banana")).toThrow();
+      expect(() => SemverSchema.parse("v1.0.0")).toThrow();
+      expect(() => SemverSchema.parse("1.0")).toThrow();
+      expect(() => SemverSchema.parse("")).toThrow();
+    });
+  });
+
   describe("ArtifactManifestSchema", () => {
     test("parses valid manifest", () => {
       const manifest = {
@@ -39,6 +55,28 @@ describe("schemas", () => {
 
     test("rejects missing required fields", () => {
       const invalid = { name: "test" };
+
+      expect(() => ArtifactManifestSchema.parse(invalid)).toThrow();
+    });
+
+    test("rejects invalid semver version", () => {
+      const invalid = {
+        name: "my-artifact",
+        author: "@grekt",
+        version: "banana",
+        description: "A test artifact",
+      };
+
+      expect(() => ArtifactManifestSchema.parse(invalid)).toThrow();
+    });
+
+    test("rejects v-prefixed version", () => {
+      const invalid = {
+        name: "my-artifact",
+        author: "@grekt",
+        version: "v1.0.0",
+        description: "A test artifact",
+      };
 
       expect(() => ArtifactManifestSchema.parse(invalid)).toThrow();
     });
@@ -144,6 +182,16 @@ describe("schemas", () => {
       const result = ArtifactEntrySchema.parse(entry);
 
       expect(result).toEqual({ version: "1.0.0", mode: "core" });
+    });
+
+    test("rejects invalid semver string", () => {
+      expect(() => ArtifactEntrySchema.parse("banana")).toThrow();
+      expect(() => ArtifactEntrySchema.parse("v1.0.0")).toThrow();
+    });
+
+    test("rejects invalid semver in object", () => {
+      const invalid = { version: "banana" };
+      expect(() => ArtifactEntrySchema.parse(invalid)).toThrow();
     });
   });
 
@@ -373,6 +421,15 @@ describe("schemas", () => {
       expect(result.files["agent.md"]).toBe("sha256:def456");
       expect(result.agent).toBe("agent.md");
       expect(result.skills).toContain("skills/testing.md");
+    });
+
+    test("rejects invalid semver version", () => {
+      const invalid = {
+        version: "banana",
+        integrity: "sha256:abc123",
+      };
+
+      expect(() => LockfileEntrySchema.parse(invalid)).toThrow();
     });
   });
 
