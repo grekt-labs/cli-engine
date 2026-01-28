@@ -29,5 +29,8 @@ export * from '#/artifactIndex';
 // Version utilities (semver validation, comparison)
 export * from '#/version';
 
+// Versioning utilities (semantic-release integration)
+export * from '#/versioning';
+
 // TODO: Export modules as they are migrated
 // export * from '#/operations';
