@@ -4,7 +4,7 @@
  * Types for the sync system that copies artifacts to tool-specific targets.
  */
 
-import type { Lockfile } from "#/schemas";
+import type { Lockfile, ProjectConfig } from "#/schemas";
 
 export interface SyncResult {
   created: string[];
@@ -16,6 +16,7 @@ export interface SyncOptions {
   dryRun?: boolean;
   force?: boolean;
   createTarget?: boolean;
+  projectConfig?: ProjectConfig; // For mode filtering (core/lazy)
 }
 
 export interface SyncPreview {
@@ -41,7 +42,7 @@ export interface SyncPlugin {
   sync(lockfile: Lockfile, projectRoot: string, options: SyncOptions): Promise<SyncResult>;
 
   /** Preview what would be synced (dry run) */
-  preview(lockfile: Lockfile, projectRoot: string): SyncPreview;
+  preview(lockfile: Lockfile, projectRoot: string, options?: SyncOptions): SyncPreview;
 }
 
 /** Configuration for folder-based plugins */

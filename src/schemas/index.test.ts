@@ -127,7 +127,7 @@ describe("schemas", () => {
 
       const result = ArtifactEntrySchema.parse(entry);
 
-      expect(result).toEqual(entry);
+      expect(result).toEqual({ ...entry, mode: "lazy" });
     });
 
     test("parses object with only version", () => {
@@ -135,7 +135,15 @@ describe("schemas", () => {
 
       const result = ArtifactEntrySchema.parse(entry);
 
-      expect(result).toEqual({ version: "2.0.0" });
+      expect(result).toEqual({ version: "2.0.0", mode: "lazy" });
+    });
+
+    test("parses object with core mode", () => {
+      const entry = { version: "1.0.0", mode: "core" as const };
+
+      const result = ArtifactEntrySchema.parse(entry);
+
+      expect(result).toEqual({ version: "1.0.0", mode: "core" });
     });
   });
 
