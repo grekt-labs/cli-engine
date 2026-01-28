@@ -5,7 +5,21 @@
  * Used to validate artifact versions and determine "latest" by semver (not publish date).
  */
 
-import semver from "semver";
+import semver, { type ReleaseType } from "semver";
+
+export type BumpType = "patch" | "minor" | "major";
+
+/**
+ * Bump a version by the specified type.
+ * Returns the new version string.
+ */
+export function bumpVersion(currentVersion: string, type: BumpType): string {
+  const newVersion = semver.inc(currentVersion, type as ReleaseType);
+  if (!newVersion) {
+    throw new Error(`Failed to bump version ${currentVersion} by ${type}`);
+  }
+  return newVersion;
+}
 
 /**
  * Check if a string is a valid semver version.

@@ -6,6 +6,7 @@ import {
   getHighestVersion,
   isGreaterThan,
   isLessThan,
+  bumpVersion,
 } from "./version";
 
 describe("version", () => {
@@ -147,6 +148,39 @@ describe("version", () => {
     test("returns false when a >= b", () => {
       expect(isLessThan("2.0.0", "1.0.0")).toBe(false);
       expect(isLessThan("1.0.0", "1.0.0")).toBe(false);
+    });
+  });
+
+  describe("bumpVersion", () => {
+    test("bumps patch version", () => {
+      expect(bumpVersion("1.0.0", "patch")).toBe("1.0.1");
+      expect(bumpVersion("1.2.3", "patch")).toBe("1.2.4");
+      expect(bumpVersion("0.0.0", "patch")).toBe("0.0.1");
+    });
+
+    test("bumps minor version", () => {
+      expect(bumpVersion("1.0.0", "minor")).toBe("1.1.0");
+      expect(bumpVersion("1.2.3", "minor")).toBe("1.3.0");
+      expect(bumpVersion("0.0.0", "minor")).toBe("0.1.0");
+    });
+
+    test("bumps major version", () => {
+      expect(bumpVersion("1.0.0", "major")).toBe("2.0.0");
+      expect(bumpVersion("1.2.3", "major")).toBe("2.0.0");
+      expect(bumpVersion("0.0.0", "major")).toBe("1.0.0");
+    });
+
+    test("resets lower versions on minor bump", () => {
+      expect(bumpVersion("1.2.5", "minor")).toBe("1.3.0");
+    });
+
+    test("resets lower versions on major bump", () => {
+      expect(bumpVersion("1.2.5", "major")).toBe("2.0.0");
+    });
+
+    test("handles prerelease versions", () => {
+      expect(bumpVersion("1.0.0-alpha", "patch")).toBe("1.0.0");
+      expect(bumpVersion("1.0.0-beta.1", "minor")).toBe("1.0.0");
     });
   });
 });
