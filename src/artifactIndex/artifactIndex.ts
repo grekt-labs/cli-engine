@@ -136,9 +136,9 @@ export function parseIndex(content: string): ArtifactIndex {
     // Section header
     const sectionMatch = line.match(/^\[(\w+)\]$/);
     if (sectionMatch) {
-      const section = sectionMatch[1] as keyof Omit<ArtifactIndex, "version">;
-      if (section in index && section !== "version") {
-        currentSection = section;
+      const sectionName = sectionMatch[1];
+      if (sectionName && sectionName in index && sectionName !== "version") {
+        currentSection = sectionName as keyof Omit<ArtifactIndex, "version">;
       }
       continue;
     }

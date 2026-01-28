@@ -241,7 +241,7 @@ export function errorResponse(status: number, statusText: string): Response {
  * Helper to create a binary response
  */
 export function binaryResponse(data: Buffer | Uint8Array, status = 200): Response {
-  return new Response(data, {
+  return new Response(data as unknown as BodyInit, {
     status,
     headers: { "Content-Type": "application/octet-stream" },
   });
