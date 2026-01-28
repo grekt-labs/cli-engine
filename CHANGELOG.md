@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/grekt-labs/cli-engine/compare/v3.1.0...v3.2.0) (2026-01-28)
+
+
+### Features
+
+* **versioning:** add bumpVersion function for manual version bumping ([#10](https://github.com/grekt-labs/cli-engine/issues/10)) ([2d51581](https://github.com/grekt-labs/cli-engine/commit/2d5158186f6caad668647e2be62192290decb340))
+
 # [3.1.0](https://github.com/grekt-labs/cli-engine/compare/v3.0.0...v3.1.0) (2026-01-28)
 
 
