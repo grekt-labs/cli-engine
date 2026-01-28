@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/grekt-labs/cli-engine/compare/v2.0.0...v2.0.1) (2026-01-28)
+
+
+### Bug Fixes
+
+* upload full file due to mistake ([#7](https://github.com/grekt-labs/cli-engine/issues/7)) ([bca23f3](https://github.com/grekt-labs/cli-engine/commit/bca23f3bbe9c9334b1044b7ac673b5527e7977fc))
+
 # [2.0.0](https://github.com/grekt-labs/cli-engine/compare/v1.9.0...v2.0.0) (2026-01-28)
 
 
