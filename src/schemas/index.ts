@@ -14,11 +14,12 @@ export const ArtifactManifestSchema = z.object({
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
 
 // Artifact component frontmatter (YAML at top of .md files)
+// Uses grk- prefix to avoid collisions with other tools' frontmatter
 export const ArtifactFrontmatterSchema = z.object({
-  type: z.enum(["agent", "skill", "command", "mcp", "rule"]),
-  name: z.string(),
-  description: z.string(),
-  agent: z.string().optional(), // for skills/commands that belong to an agent
+  "grk-type": z.enum(["agent", "skill", "command", "mcp", "rule"]),
+  "grk-name": z.string(),
+  "grk-description": z.string(),
+  "grk-agent": z.string().optional(), // for skills/commands that belong to an agent
 });
 export type ArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
 

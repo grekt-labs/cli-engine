@@ -64,24 +64,24 @@ function parseJsonComponent(content: string): ParsedComponent | null {
   try {
     const data = JSON.parse(content);
 
-    // Validate required fields for JSON components
-    if (!data.type || !data.name || !data.description) {
+    // Validate required fields for JSON components (grk- prefixed)
+    if (!data["grk-type"] || !data["grk-name"] || !data["grk-description"]) {
       return null;
     }
 
     // Only accept mcp and rule types for JSON files
-    if (data.type !== "mcp" && data.type !== "rule") {
+    if (data["grk-type"] !== "mcp" && data["grk-type"] !== "rule") {
       return null;
     }
 
     const frontmatter: ArtifactFrontmatter = {
-      type: data.type,
-      name: data.name,
-      description: data.description,
+      "grk-type": data["grk-type"],
+      "grk-name": data["grk-name"],
+      "grk-description": data["grk-description"],
     };
 
     // Remove frontmatter fields from content
-    const { type: _type, name: _name, description: _desc, ...rest } = data;
+    const { "grk-type": _type, "grk-name": _name, "grk-description": _desc, ...rest } = data;
 
     return { frontmatter, content: rest };
   } catch {
@@ -113,7 +113,7 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
 
     const relativePath = relative(artifactDir, filePath);
 
-    switch (parsed.frontmatter.type) {
+    switch (parsed.frontmatter["grk-type"]) {
       case "agent":
         info.agent = { path: relativePath, parsed };
         break;
@@ -139,7 +139,7 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
 
     const relativePath = relative(artifactDir, filePath);
 
-    switch (parsed.frontmatter.type) {
+    switch (parsed.frontmatter["grk-type"]) {
       case "mcp":
         info.mcps.push({ path: relativePath, parsed });
         break;

@@ -4,9 +4,9 @@ import { parseFrontmatter } from "./frontmatter";
 describe("frontmatter", () => {
   test("parseFrontmatter extracts YAML from markdown", () => {
     const content = `---
-type: agent
-name: Test Agent
-description: A test agent
+grk-type: agent
+grk-name: Test Agent
+grk-description: A test agent
 ---
 
 # Agent content here`;
@@ -14,17 +14,17 @@ description: A test agent
     const result = parseFrontmatter(content);
 
     expect(result).not.toBeNull();
-    expect(result?.frontmatter.type).toBe("agent");
-    expect(result?.frontmatter.name).toBe("Test Agent");
+    expect(result?.frontmatter["grk-type"]).toBe("agent");
+    expect(result?.frontmatter["grk-name"]).toBe("Test Agent");
     expect(result?.content).toContain("# Agent content here");
   });
 
   test("parseFrontmatter validates against schema", () => {
     const content = `---
-type: skill
-name: Test Skill
-description: A test skill
-agent: my-agent
+grk-type: skill
+grk-name: Test Skill
+grk-description: A test skill
+grk-agent: my-agent
 ---
 
 Skill content`;
@@ -32,14 +32,14 @@ Skill content`;
     const result = parseFrontmatter(content);
 
     expect(result).not.toBeNull();
-    expect(result?.frontmatter.type).toBe("skill");
-    expect(result?.frontmatter.agent).toBe("my-agent");
+    expect(result?.frontmatter["grk-type"]).toBe("skill");
+    expect(result?.frontmatter["grk-agent"]).toBe("my-agent");
   });
 
   test("parseFrontmatter returns null for invalid frontmatter", () => {
     const content = `---
-type: invalid-type
-name: Test
+grk-type: invalid-type
+grk-name: Test
 ---
 
 Content`;
@@ -51,7 +51,7 @@ Content`;
 
   test("parseFrontmatter returns null for missing required fields", () => {
     const content = `---
-type: agent
+grk-type: agent
 ---
 
 Content`;
