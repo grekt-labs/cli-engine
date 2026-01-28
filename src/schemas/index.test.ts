@@ -47,36 +47,36 @@ describe("schemas", () => {
   describe("ArtifactFrontmatterSchema", () => {
     test("parses agent frontmatter", () => {
       const frontmatter = {
-        type: "agent",
-        name: "Code Reviewer",
-        description: "Reviews code for best practices",
+        "grk-type": "agent",
+        "grk-name": "Code Reviewer",
+        "grk-description": "Reviews code for best practices",
       };
 
       const result = ArtifactFrontmatterSchema.parse(frontmatter);
 
-      expect(result.type).toBe("agent");
-      expect(result.name).toBe("Code Reviewer");
+      expect(result["grk-type"]).toBe("agent");
+      expect(result["grk-name"]).toBe("Code Reviewer");
     });
 
     test("parses skill with agent reference", () => {
       const frontmatter = {
-        type: "skill",
-        name: "Testing Skill",
-        description: "Helps with testing",
-        agent: "code-reviewer",
+        "grk-type": "skill",
+        "grk-name": "Testing Skill",
+        "grk-description": "Helps with testing",
+        "grk-agent": "code-reviewer",
       };
 
       const result = ArtifactFrontmatterSchema.parse(frontmatter);
 
-      expect(result.type).toBe("skill");
-      expect(result.agent).toBe("code-reviewer");
+      expect(result["grk-type"]).toBe("skill");
+      expect(result["grk-agent"]).toBe("code-reviewer");
     });
 
     test("rejects invalid type", () => {
       const invalid = {
-        type: "invalid",
-        name: "Test",
-        description: "Test",
+        "grk-type": "invalid",
+        "grk-name": "Test",
+        "grk-description": "Test",
       };
 
       expect(() => ArtifactFrontmatterSchema.parse(invalid)).toThrow();
@@ -87,11 +87,11 @@ describe("schemas", () => {
 
       for (const type of types) {
         const result = ArtifactFrontmatterSchema.parse({
-          type,
-          name: "Test",
-          description: "Test",
+          "grk-type": type,
+          "grk-name": "Test",
+          "grk-description": "Test",
         });
-        expect(result.type).toBe(type);
+        expect(result["grk-type"]).toBe(type);
       }
     });
   });
