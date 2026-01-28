@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/grekt-labs/cli-engine/compare/v1.9.0...v2.0.0) (2026-01-28)
+
+
+* feat!: lazy loading system ([dc7839c](https://github.com/grekt-labs/cli-engine/commit/dc7839c54465705542ce29e922e9e7d85ec641b3))
+
+
+### BREAKING CHANGES
+
+* ArtifactEntrySchema now includes mode field (lazy default), new component types (mcp, rule), keywords required for publish
+
 # [1.9.0](https://github.com/grekt-labs/cli-engine/compare/v1.8.0...v1.9.0) (2026-01-28)
 
 
