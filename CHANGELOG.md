@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/grekt-labs/cli-engine/compare/v1.8.0...v1.9.0) (2026-01-28)
+
+
+### Features
+
+* add lazy and core modes for artifacts ([#6](https://github.com/grekt-labs/cli-engine/issues/6)) ([bb4de4d](https://github.com/grekt-labs/cli-engine/commit/bb4de4d53f9af63e39714fe90db935049f7565b6))
+
 # [1.8.0](https://github.com/grekt-labs/cli-engine/compare/v1.7.0...v1.8.0) (2026-01-26)
 
 
