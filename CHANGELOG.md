@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/grekt-labs/cli-engine/compare/v2.0.1...v3.0.0) (2026-01-28)
+
+
+### Features
+
+* update schema to avoid frontmatter conflicts ([#8](https://github.com/grekt-labs/cli-engine/issues/8)) ([02f42ca](https://github.com/grekt-labs/cli-engine/commit/02f42ca2c9aa08bb98ea794acdac6b4d040415b3))
+
+
+### BREAKING CHANGES
+
+* Versions must now be valid semver (no v prefix)
+
 ## [2.0.1](https://github.com/grekt-labs/cli-engine/compare/v2.0.0...v2.0.1) (2026-01-28)
 
 
