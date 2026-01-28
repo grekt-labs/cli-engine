@@ -65,8 +65,7 @@ function serializeEntries(entries: IndexEntry[]): string[] {
     seen.add(entry.artifactId);
 
     const keywords = entry.keywords.join(",");
-    const modePrefix = entry.mode === "core" ? "*" : "";
-    lines.push(`${modePrefix}${entry.artifactId}:${keywords}`);
+    lines.push(`${entry.artifactId}:${keywords}`);
   }
 
   return lines;
@@ -74,11 +73,11 @@ function serializeEntries(entries: IndexEntry[]): string[] {
 
 /**
  * Serialize the full index to a minified text format.
+ * Only LAZY artifacts are indexed (CORE artifacts are already in context).
  *
  * Format:
  * [agents]
- * *@scope/artifact:keyword1,keyword2  (* = core mode)
- * @scope/other:keyword1,keyword2
+ * @scope/artifact:keyword1,keyword2
  *
  * [skills]
  * @scope/artifact:keyword1,keyword2
@@ -145,21 +144,19 @@ export function parseIndex(content: string): ArtifactIndex {
 
     if (!currentSection) continue;
 
-    // Parse entry: [*]@scope/artifact:keyword1,keyword2
-    const isCore = line.startsWith("*");
-    const entryLine = isCore ? line.slice(1) : line;
-    const colonIndex = entryLine.indexOf(":");
+    // Parse entry: @scope/artifact:keyword1,keyword2
+    const colonIndex = line.indexOf(":");
 
     if (colonIndex === -1) continue;
 
-    const artifactId = entryLine.slice(0, colonIndex);
-    const keywordsStr = entryLine.slice(colonIndex + 1);
+    const artifactId = line.slice(0, colonIndex);
+    const keywordsStr = line.slice(colonIndex + 1);
     const keywords = keywordsStr ? keywordsStr.split(",") : [];
 
     const entry: IndexEntry = {
       artifactId,
       keywords,
-      mode: isCore ? "core" : "lazy",
+      mode: "lazy", // Only LAZY artifacts are in the index
       path: "", // Path not stored in serialized format
     };
 
