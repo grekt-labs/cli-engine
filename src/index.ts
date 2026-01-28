@@ -23,5 +23,8 @@ export * from '#/registry';
 // Sync (types and constants, implementation in CLI)
 export * from '#/sync';
 
+// Artifact Index (lazy loading index generation)
+export * from '#/artifactIndex';
+
 // TODO: Export modules as they are migrated
 // export * from '#/operations';
