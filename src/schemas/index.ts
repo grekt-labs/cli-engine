@@ -9,12 +9,13 @@ export const ArtifactManifestSchema = z.object({
   author: z.string(),
   version: z.string(),
   description: z.string(),
+  keywords: z.array(z.string()).optional(), // Required in publish (3-5 keywords)
 });
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
 
 // Artifact component frontmatter (YAML at top of .md files)
 export const ArtifactFrontmatterSchema = z.object({
-  type: z.enum(["agent", "skill", "command"]),
+  type: z.enum(["agent", "skill", "command", "mcp", "rule"]),
   name: z.string(),
   description: z.string(),
   agent: z.string().optional(), // for skills/commands that belong to an agent
@@ -28,11 +29,16 @@ export const CustomTargetSchema = z.object({
 });
 export type CustomTarget = z.infer<typeof CustomTargetSchema>;
 
+// Sync mode for artifacts: lazy (default) = only in index, core = copied to target
+export const ArtifactModeSchema = z.enum(["core", "lazy"]);
+export type ArtifactMode = z.infer<typeof ArtifactModeSchema>;
+
 // Artifact entry in grekt.yaml - either version string (all) or object (selected components)
 export const ArtifactEntrySchema = z.union([
-  z.string(), // "1.0.0" = all components
+  z.string(), // "1.0.0" = all components, LAZY mode
   z.object({
     version: z.string(),
+    mode: ArtifactModeSchema.default("lazy"), // LAZY by default, CORE opt-in
     agent: z.boolean().optional(), // true = include, false/omitted = exclude
     skills: z.array(z.string()).optional(), // paths to include
     commands: z.array(z.string()).optional(), // paths to include
@@ -164,3 +170,27 @@ export const LocalConfigSchema = z.object({
   tokens: TokensSchema.optional(),
 });
 export type LocalConfig = z.infer<typeof LocalConfigSchema>;
+
+// Component types for the artifact index
+export const ComponentTypeSchema = z.enum(["agent", "skill", "command", "mcp", "rule"]);
+export type ComponentType = z.infer<typeof ComponentTypeSchema>;
+
+// Index entry for a single component
+export const IndexEntrySchema = z.object({
+  artifactId: z.string(), // @scope/name
+  keywords: z.array(z.string()),
+  mode: ArtifactModeSchema, // core or lazy
+  path: z.string(), // relative path within artifact
+});
+export type IndexEntry = z.infer<typeof IndexEntrySchema>;
+
+// Full artifact index structure
+export const ArtifactIndexSchema = z.object({
+  version: z.literal(1),
+  agents: z.array(IndexEntrySchema).default([]),
+  skills: z.array(IndexEntrySchema).default([]),
+  commands: z.array(IndexEntrySchema).default([]),
+  mcps: z.array(IndexEntrySchema).default([]),
+  rules: z.array(IndexEntrySchema).default([]),
+});
+export type ArtifactIndex = z.infer<typeof ArtifactIndexSchema>;
