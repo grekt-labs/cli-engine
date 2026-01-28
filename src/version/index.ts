@@ -11,4 +11,6 @@ export {
   getHighestVersion,
   isGreaterThan,
   isLessThan,
+  bumpVersion,
+  type BumpType,
 } from "./version";
