@@ -1,24 +1,31 @@
 import { z } from "zod";
+import { isValidSemver } from "#/version";
 
 // Sync targets (validated at runtime against registered plugins)
 export type SyncTarget = string;
+
+// Semver validation schema
+export const SemverSchema = z.string().refine(isValidSemver, {
+  message: "Invalid semver version. Must be valid semver (e.g., 1.0.0, 2.1.0-beta.1)",
+});
 
 // Artifact manifest (grekt.yaml inside each published artifact)
 export const ArtifactManifestSchema = z.object({
   name: z.string(),
   author: z.string(),
-  version: z.string(),
+  version: SemverSchema,
   description: z.string(),
   keywords: z.array(z.string()).optional(), // Required in publish (3-5 keywords)
 });
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
 
 // Artifact component frontmatter (YAML at top of .md files)
+// Uses grk- prefix to avoid collisions with other tools' frontmatter
 export const ArtifactFrontmatterSchema = z.object({
-  type: z.enum(["agent", "skill", "command", "mcp", "rule"]),
-  name: z.string(),
-  description: z.string(),
-  agent: z.string().optional(), // for skills/commands that belong to an agent
+  "grk-type": z.enum(["agent", "skill", "command", "mcp", "rule"]),
+  "grk-name": z.string(),
+  "grk-description": z.string(),
+  "grk-agent": z.string().optional(), // for skills/commands that belong to an agent
 });
 export type ArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
 
@@ -35,9 +42,9 @@ export type ArtifactMode = z.infer<typeof ArtifactModeSchema>;
 
 // Artifact entry in grekt.yaml - either version string (all) or object (selected components)
 export const ArtifactEntrySchema = z.union([
-  z.string(), // "1.0.0" = all components, LAZY mode
+  SemverSchema, // "1.0.0" = all components, LAZY mode
   z.object({
-    version: z.string(),
+    version: SemverSchema,
     mode: ArtifactModeSchema.default("lazy"), // LAZY by default, CORE opt-in
     agent: z.boolean().optional(), // true = include, false/omitted = exclude
     skills: z.array(z.string()).optional(), // paths to include
@@ -103,7 +110,7 @@ export type Credentials = z.infer<typeof CredentialsSchema>;
 
 // Lockfile entry (grekt.lock) - pinned versions, integrity hashes, and resolved URLs for reproducible installs
 export const LockfileEntrySchema = z.object({
-  version: z.string(),
+  version: SemverSchema,
   integrity: z.string(), // SHA256 hash of entire artifact
   source: z.string().optional(),
   resolved: z.string().optional(), // Full URL, IMMUTABLE after write
@@ -124,7 +131,8 @@ export type LockfileEntry = z.infer<typeof LockfileEntrySchema>;
 // Registry artifact metadata (stored in S3 as metadata.json per artifact)
 export const ArtifactMetadataSchema = z.object({
   name: z.string(), // Full artifact ID: @author/name
-  latest: z.string(), // Latest version
+  latest: z.string(), // Latest version (highest semver)
+  versions: z.array(z.string()).optional(), // All available versions
   deprecated: z.record(z.string(), z.string()).default({}), // version -> deprecation message
   createdAt: z.string(), // ISO timestamp
   updatedAt: z.string(), // ISO timestamp

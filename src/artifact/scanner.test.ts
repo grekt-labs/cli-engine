@@ -66,9 +66,9 @@ describe("scanner", () => {
         description: "desc",
       };
       const agentContent = `---
-type: agent
-name: My Agent
-description: An agent
+grk-type: agent
+grk-name: My Agent
+grk-description: An agent
 ---
 # Agent content`;
 
@@ -82,8 +82,8 @@ description: An agent
       expect(result).not.toBeNull();
       expect(result!.agent).toBeDefined();
       expect(result!.agent!.path).toBe("agent.md");
-      expect(result!.agent!.parsed.frontmatter.type).toBe("agent");
-      expect(result!.agent!.parsed.frontmatter.name).toBe("My Agent");
+      expect(result!.agent!.parsed.frontmatter["grk-type"]).toBe("agent");
+      expect(result!.agent!.parsed.frontmatter["grk-name"]).toBe("My Agent");
     });
 
     test("finds skills in nested directories", () => {
@@ -94,15 +94,15 @@ description: An agent
         description: "desc",
       };
       const skill1 = `---
-type: skill
-name: Skill 1
-description: First skill
+grk-type: skill
+grk-name: Skill 1
+grk-description: First skill
 ---
 # Skill 1`;
       const skill2 = `---
-type: skill
-name: Skill 2
-description: Second skill
+grk-type: skill
+grk-name: Skill 2
+grk-description: Second skill
 ---
 # Skill 2`;
 
@@ -128,9 +128,9 @@ description: Second skill
         description: "desc",
       };
       const command = `---
-type: command
-name: My Command
-description: A command
+grk-type: command
+grk-name: My Command
+grk-description: A command
 ---
 # Command content`;
 
@@ -144,7 +144,7 @@ description: A command
       expect(result).not.toBeNull();
       expect(result!.commands).toHaveLength(1);
       expect(result!.commands[0].path).toBe("commands/cmd.md");
-      expect(result!.commands[0].parsed.frontmatter.type).toBe("command");
+      expect(result!.commands[0].parsed.frontmatter["grk-type"]).toBe("command");
     });
 
     test("handles invalid frontmatter gracefully", () => {
@@ -155,9 +155,9 @@ description: A command
         description: "desc",
       };
       const validSkill = `---
-type: skill
-name: Valid Skill
-description: A valid skill
+grk-type: skill
+grk-name: Valid Skill
+grk-description: A valid skill
 ---
 # Valid`;
       const invalidMd = `---
@@ -212,29 +212,29 @@ No frontmatter here`;
         description: "A complete artifact",
       };
       const agent = `---
-type: agent
-name: Main Agent
-description: The main agent
+grk-type: agent
+grk-name: Main Agent
+grk-description: The main agent
 ---
 # Main Agent`;
       const skill1 = `---
-type: skill
-name: Skill A
-description: First skill
-agent: Main Agent
+grk-type: skill
+grk-name: Skill A
+grk-description: First skill
+grk-agent: Main Agent
 ---
 # Skill A`;
       const skill2 = `---
-type: skill
-name: Skill B
-description: Second skill
-agent: Main Agent
+grk-type: skill
+grk-name: Skill B
+grk-description: Second skill
+grk-agent: Main Agent
 ---
 # Skill B`;
       const command = `---
-type: command
-name: My Command
-description: A command
+grk-type: command
+grk-name: My Command
+grk-description: A command
 ---
 # Command`;
 
@@ -251,7 +251,7 @@ description: A command
       expect(result).not.toBeNull();
       expect(result!.manifest.name).toBe("complete-artifact");
       expect(result!.agent).toBeDefined();
-      expect(result!.agent!.parsed.frontmatter.name).toBe("Main Agent");
+      expect(result!.agent!.parsed.frontmatter["grk-name"]).toBe("Main Agent");
       expect(result!.skills).toHaveLength(2);
       expect(result!.commands).toHaveLength(1);
     });

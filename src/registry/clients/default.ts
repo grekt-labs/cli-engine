@@ -12,8 +12,11 @@ import type {
   ResolvedRegistry,
   DownloadResult,
   PublishResult,
+  RegistryArtifactInfo,
+  VersionInfo,
 } from "../registry.types";
 import { hashDirectory, calculateIntegrity } from "#/artifact";
+import { sortVersionsDesc, getHighestVersion } from "#/version";
 
 export class DefaultRegistryClient implements RegistryClient {
   private host: string;
@@ -144,9 +147,38 @@ export class DefaultRegistryClient implements RegistryClient {
     }
   }
 
-  async listVersions(_artifactId: string): Promise<string[]> {
-    // Default registry doesn't expose version list via metadata
-    // Return empty array - caller should use getLatestVersion
-    return [];
+  async listVersions(artifactId: string): Promise<string[]> {
+    const { data: metadata } = await this.fetchMetadata(artifactId);
+    if (!metadata?.versions) {
+      return [];
+    }
+
+    // Sort by semver descending (highest version first)
+    return sortVersionsDesc(metadata.versions);
+  }
+
+  async getArtifactInfo(artifactId: string): Promise<RegistryArtifactInfo | null> {
+    const { data: metadata } = await this.fetchMetadata(artifactId);
+    if (!metadata) {
+      return null;
+    }
+
+    const sortedVersions = metadata.versions
+      ? sortVersionsDesc(metadata.versions)
+      : [];
+
+    const versions: VersionInfo[] = sortedVersions.map(version => ({
+      version,
+      deprecated: metadata.deprecated[version],
+    }));
+
+    return {
+      artifactId: metadata.name,
+      latestVersion: getHighestVersion(sortedVersions) ?? metadata.latest,
+      versions,
+      createdAt: metadata.createdAt,
+      updatedAt: metadata.updatedAt,
+    };
   }
 }
+

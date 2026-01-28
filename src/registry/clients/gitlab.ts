@@ -16,8 +16,11 @@ import type {
   ResolvedRegistry,
   DownloadResult,
   PublishResult,
+  RegistryArtifactInfo,
+  VersionInfo,
 } from "../registry.types";
 import { hashDirectory, calculateIntegrity } from "#/artifact";
+import { sortVersionsDesc, getHighestVersion } from "#/version";
 
 interface GitLabPackage {
   id: number;
@@ -257,8 +260,11 @@ export class GitLabRegistryClient implements RegistryClient {
   }
 
   async getLatestVersion(artifactId: string): Promise<string | null> {
-    const versions = await this.listVersions(artifactId);
-    return versions.length > 0 ? versions[0]! : null;
+    const { data: packages } = await this.listPackages(artifactId);
+    const versions = packages.map(p => p.version);
+
+    // Return highest semver version (not most recently published)
+    return getHighestVersion(versions);
   }
 
   async versionExists(artifactId: string, version: string): Promise<boolean> {
@@ -268,12 +274,33 @@ export class GitLabRegistryClient implements RegistryClient {
 
   async listVersions(artifactId: string): Promise<string[]> {
     const { data: packages } = await this.listPackages(artifactId);
+    const versions = packages.map(p => p.version);
 
-    // Sort by created_at descending (newest first)
-    packages.sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    // Sort by semver descending (highest version first)
+    return sortVersionsDesc(versions);
+  }
+
+  async getArtifactInfo(artifactId: string): Promise<RegistryArtifactInfo | null> {
+    const { data: packages } = await this.listPackages(artifactId);
+    if (packages.length === 0) {
+      return null;
+    }
+
+    const versions: VersionInfo[] = packages.map(p => ({
+      version: p.version,
+      publishedAt: p.created_at,
+    }));
+
+    // Sort by semver
+    const sortedVersions = sortVersionsDesc(versions.map(v => v.version));
+    const sortedVersionInfo = sortedVersions.map(version =>
+      versions.find(v => v.version === version)!
     );
 
-    return packages.map(p => p.version);
+    return {
+      artifactId,
+      latestVersion: sortedVersions[0] ?? "",
+      versions: sortedVersionInfo,
+    };
   }
 }

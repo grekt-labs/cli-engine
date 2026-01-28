@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import {
+  SemverSchema,
   ArtifactManifestSchema,
   ArtifactFrontmatterSchema,
   CustomTargetSchema,
@@ -20,6 +21,21 @@ import {
 import { REGISTRY_HOST } from "#/constants";
 
 describe("schemas", () => {
+  describe("SemverSchema", () => {
+    test("accepts valid semver versions", () => {
+      expect(SemverSchema.parse("1.0.0")).toBe("1.0.0");
+      expect(SemverSchema.parse("2.1.0-beta.1")).toBe("2.1.0-beta.1");
+      expect(SemverSchema.parse("1.0.0+build")).toBe("1.0.0+build");
+    });
+
+    test("rejects invalid versions", () => {
+      expect(() => SemverSchema.parse("banana")).toThrow();
+      expect(() => SemverSchema.parse("v1.0.0")).toThrow();
+      expect(() => SemverSchema.parse("1.0")).toThrow();
+      expect(() => SemverSchema.parse("")).toThrow();
+    });
+  });
+
   describe("ArtifactManifestSchema", () => {
     test("parses valid manifest", () => {
       const manifest = {
@@ -42,41 +58,63 @@ describe("schemas", () => {
 
       expect(() => ArtifactManifestSchema.parse(invalid)).toThrow();
     });
+
+    test("rejects invalid semver version", () => {
+      const invalid = {
+        name: "my-artifact",
+        author: "@grekt",
+        version: "banana",
+        description: "A test artifact",
+      };
+
+      expect(() => ArtifactManifestSchema.parse(invalid)).toThrow();
+    });
+
+    test("rejects v-prefixed version", () => {
+      const invalid = {
+        name: "my-artifact",
+        author: "@grekt",
+        version: "v1.0.0",
+        description: "A test artifact",
+      };
+
+      expect(() => ArtifactManifestSchema.parse(invalid)).toThrow();
+    });
   });
 
   describe("ArtifactFrontmatterSchema", () => {
     test("parses agent frontmatter", () => {
       const frontmatter = {
-        type: "agent",
-        name: "Code Reviewer",
-        description: "Reviews code for best practices",
+        "grk-type": "agent",
+        "grk-name": "Code Reviewer",
+        "grk-description": "Reviews code for best practices",
       };
 
       const result = ArtifactFrontmatterSchema.parse(frontmatter);
 
-      expect(result.type).toBe("agent");
-      expect(result.name).toBe("Code Reviewer");
+      expect(result["grk-type"]).toBe("agent");
+      expect(result["grk-name"]).toBe("Code Reviewer");
     });
 
     test("parses skill with agent reference", () => {
       const frontmatter = {
-        type: "skill",
-        name: "Testing Skill",
-        description: "Helps with testing",
-        agent: "code-reviewer",
+        "grk-type": "skill",
+        "grk-name": "Testing Skill",
+        "grk-description": "Helps with testing",
+        "grk-agent": "code-reviewer",
       };
 
       const result = ArtifactFrontmatterSchema.parse(frontmatter);
 
-      expect(result.type).toBe("skill");
-      expect(result.agent).toBe("code-reviewer");
+      expect(result["grk-type"]).toBe("skill");
+      expect(result["grk-agent"]).toBe("code-reviewer");
     });
 
     test("rejects invalid type", () => {
       const invalid = {
-        type: "invalid",
-        name: "Test",
-        description: "Test",
+        "grk-type": "invalid",
+        "grk-name": "Test",
+        "grk-description": "Test",
       };
 
       expect(() => ArtifactFrontmatterSchema.parse(invalid)).toThrow();
@@ -87,11 +125,11 @@ describe("schemas", () => {
 
       for (const type of types) {
         const result = ArtifactFrontmatterSchema.parse({
-          type,
-          name: "Test",
-          description: "Test",
+          "grk-type": type,
+          "grk-name": "Test",
+          "grk-description": "Test",
         });
-        expect(result.type).toBe(type);
+        expect(result["grk-type"]).toBe(type);
       }
     });
   });
@@ -144,6 +182,16 @@ describe("schemas", () => {
       const result = ArtifactEntrySchema.parse(entry);
 
       expect(result).toEqual({ version: "1.0.0", mode: "core" });
+    });
+
+    test("rejects invalid semver string", () => {
+      expect(() => ArtifactEntrySchema.parse("banana")).toThrow();
+      expect(() => ArtifactEntrySchema.parse("v1.0.0")).toThrow();
+    });
+
+    test("rejects invalid semver in object", () => {
+      const invalid = { version: "banana" };
+      expect(() => ArtifactEntrySchema.parse(invalid)).toThrow();
     });
   });
 
@@ -373,6 +421,15 @@ describe("schemas", () => {
       expect(result.files["agent.md"]).toBe("sha256:def456");
       expect(result.agent).toBe("agent.md");
       expect(result.skills).toContain("skills/testing.md");
+    });
+
+    test("rejects invalid semver version", () => {
+      const invalid = {
+        version: "banana",
+        integrity: "sha256:abc123",
+      };
+
+      expect(() => LockfileEntrySchema.parse(invalid)).toThrow();
     });
   });
 

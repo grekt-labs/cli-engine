@@ -81,9 +81,14 @@ export interface RegistryClient {
   versionExists(artifactId: string, version: string): Promise<boolean>;
 
   /**
-   * List all versions of an artifact (sorted desc by default)
+   * List all versions of an artifact (sorted by semver descending)
    */
   listVersions(artifactId: string): Promise<string[]>;
+
+  /**
+   * Get full artifact information (optional, for info command)
+   */
+  getArtifactInfo?(artifactId: string): Promise<RegistryArtifactInfo | null>;
 }
 
 /**
@@ -150,4 +155,24 @@ export interface DownloadOptions {
 export interface TarballDownloadResult {
   success: boolean;
   error?: string;
+}
+
+/**
+ * Version information for artifact info
+ */
+export interface VersionInfo {
+  version: string;
+  deprecated?: string;
+  publishedAt?: string;
+}
+
+/**
+ * Full artifact information (for info/versions commands)
+ */
+export interface RegistryArtifactInfo {
+  artifactId: string;
+  latestVersion: string;
+  versions: VersionInfo[];
+  createdAt?: string;
+  updatedAt?: string;
 }
