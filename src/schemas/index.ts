@@ -59,8 +59,18 @@ export const ProjectOptionsSchema = z.object({
 });
 export type ProjectOptions = z.infer<typeof ProjectOptionsSchema>;
 
-// Project config (grekt.yaml) - declares which artifacts to install and sync targets
+// Project config (grekt.yaml) - unified schema for both projects and artifacts
+// Projects use: targets, artifacts, customTargets, options
+// Artifacts use: name, author, version, description, keywords (+ optionally project fields if they depend on other artifacts)
 export const ProjectConfigSchema = z.object({
+  // Manifest fields (for publishing artifacts)
+  name: z.string().optional(),
+  author: z.string().optional(),
+  version: SemverSchema.optional(),
+  description: z.string().optional(),
+  keywords: z.array(z.string()).optional(),
+
+  // Config fields (for consuming artifacts)
   targets: z.array(z.string()).default([]),
   autoSync: z.boolean().default(false),
   registry: z.string().optional(),
@@ -69,6 +79,24 @@ export const ProjectConfigSchema = z.object({
   options: ProjectOptionsSchema.default({}),
 });
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
+
+// Validation helper: check if config has required manifest fields for publishing
+export function hasManifestFields(config: ProjectConfig): config is ProjectConfig & {
+  name: string;
+  author: string;
+  version: string;
+  description: string;
+  keywords: string[];
+} {
+  return !!(
+    config.name &&
+    config.author &&
+    config.version &&
+    config.description &&
+    config.keywords &&
+    config.keywords.length > 0
+  );
+}
 
 // S3 credentials for publishing to S3-compatible storage
 export const S3CredentialsSchema = z.object({
