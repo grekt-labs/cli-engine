@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/grekt-labs/cli-engine/compare/v3.3.0...v3.4.0) (2026-01-29)
+
+
+### Features
+
+* sync strategies updated ([#13](https://github.com/grekt-labs/cli-engine/issues/13)) ([a97c632](https://github.com/grekt-labs/cli-engine/commit/a97c6327a24502fb6392b8190c505ab816cef70b))
+
 # [3.3.0](https://github.com/grekt-labs/cli-engine/compare/v3.2.0...v3.3.0) (2026-01-28)
 
 
