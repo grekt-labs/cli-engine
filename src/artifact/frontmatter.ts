@@ -1,17 +1,49 @@
 import matter from "gray-matter";
-import { ArtifactFrontmatterSchema, type ArtifactFrontmatter } from "#/schemas";
+import { ArtifactFrontmatterSchema } from "#/schemas";
+import type { InvalidFileReason, ParsedArtifact } from "./scanner.types";
 
-export interface ParsedArtifact {
-  frontmatter: ArtifactFrontmatter;
-  content: string;
+export type FrontmatterParseResult =
+  | { success: true; parsed: ParsedArtifact }
+  | { success: false; reason: InvalidFileReason; missingFields?: string[] };
+
+function getReasonFromMissingFields(missingFields: string[]): InvalidFileReason {
+  if (missingFields.includes("grk-type")) return "missing-type";
+  if (missingFields.includes("grk-name")) return "missing-name";
+  return "missing-description";
 }
 
-export function parseFrontmatter(content: string): ParsedArtifact | null {
+export function parseFrontmatter(content: string): FrontmatterParseResult {
+  let data: Record<string, unknown>;
+  let body: string;
+
   try {
-    const { data, content: body } = matter(content);
-    const frontmatter = ArtifactFrontmatterSchema.parse(data);
-    return { frontmatter, content: body };
+    const result = matter(content);
+    data = result.data;
+    body = result.content;
   } catch {
-    return null;
+    return { success: false, reason: "no-frontmatter" };
   }
+
+  if (!data || Object.keys(data).length === 0) {
+    return { success: false, reason: "no-frontmatter" };
+  }
+
+  const missingFields: string[] = [];
+  if (!data["grk-type"]) missingFields.push("grk-type");
+  if (!data["grk-name"]) missingFields.push("grk-name");
+  if (!data["grk-description"]) missingFields.push("grk-description");
+
+  if (missingFields.length > 0) {
+    const reason = getReasonFromMissingFields(missingFields);
+    return { success: false, reason, missingFields };
+  }
+
+  const schemaResult = ArtifactFrontmatterSchema.safeParse(data);
+  if (!schemaResult.success) {
+    return { success: false, reason: "invalid-frontmatter" };
+  }
+
+  return { success: true, parsed: { frontmatter: schemaResult.data, content: body } };
 }
+
+export type { ParsedArtifact } from "./scanner.types";

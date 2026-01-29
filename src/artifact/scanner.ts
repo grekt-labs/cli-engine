@@ -2,22 +2,13 @@ import { join, relative } from "path";
 import { parse } from "yaml";
 import type { FileSystem } from "#/core";
 import { ArtifactManifestSchema, type ArtifactManifest, type ArtifactFrontmatter } from "#/schemas";
-import { parseFrontmatter, type ParsedArtifact } from "./frontmatter";
-
-// Parsed component for JSON files (mcp, rule)
-export interface ParsedComponent {
-  frontmatter: ArtifactFrontmatter;
-  content: unknown; // JSON content after type field
-}
-
-export interface ArtifactInfo {
-  manifest: ArtifactManifest;
-  agent?: { path: string; parsed: ParsedArtifact };
-  skills: { path: string; parsed: ParsedArtifact }[];
-  commands: { path: string; parsed: ParsedArtifact }[];
-  mcps: { path: string; parsed: ParsedComponent }[];
-  rules: { path: string; parsed: ParsedComponent }[];
-}
+import { parseFrontmatter } from "./frontmatter";
+import type {
+  InvalidFileReason,
+  InvalidFile,
+  ParsedComponent,
+  ArtifactInfo,
+} from "./scanner.types";
 
 function readArtifactManifest(fs: FileSystem, artifactDir: string): ArtifactManifest | null {
   const manifestPath = join(artifactDir, "grekt.yaml");
@@ -59,34 +50,47 @@ function findFiles(fs: FileSystem, dir: string): FoundFiles {
   return result;
 }
 
-// Parse JSON component files (mcp, rule)
-function parseJsonComponent(content: string): ParsedComponent | null {
+type JsonParseResult =
+  | { success: true; parsed: ParsedComponent }
+  | { success: false; reason: InvalidFileReason; missingFields?: string[] };
+
+function getReasonFromMissingFields(missingFields: string[]): InvalidFileReason {
+  if (missingFields.includes("grk-type")) return "missing-type";
+  if (missingFields.includes("grk-name")) return "missing-name";
+  return "missing-description";
+}
+
+function parseJsonComponent(content: string): JsonParseResult {
+  let data: Record<string, unknown>;
   try {
-    const data = JSON.parse(content);
-
-    // Validate required fields for JSON components (grk- prefixed)
-    if (!data["grk-type"] || !data["grk-name"] || !data["grk-description"]) {
-      return null;
-    }
-
-    // Only accept mcp and rule types for JSON files
-    if (data["grk-type"] !== "mcp" && data["grk-type"] !== "rule") {
-      return null;
-    }
-
-    const frontmatter: ArtifactFrontmatter = {
-      "grk-type": data["grk-type"],
-      "grk-name": data["grk-name"],
-      "grk-description": data["grk-description"],
-    };
-
-    // Remove frontmatter fields from content
-    const { "grk-type": _type, "grk-name": _name, "grk-description": _desc, ...rest } = data;
-
-    return { frontmatter, content: rest };
+    data = JSON.parse(content);
   } catch {
-    return null;
+    return { success: false, reason: "invalid-json" };
   }
+
+  const missingFields: string[] = [];
+  if (!data["grk-type"]) missingFields.push("grk-type");
+  if (!data["grk-name"]) missingFields.push("grk-name");
+  if (!data["grk-description"]) missingFields.push("grk-description");
+
+  if (missingFields.length > 0) {
+    const reason = getReasonFromMissingFields(missingFields);
+    return { success: false, reason, missingFields };
+  }
+
+  if (data["grk-type"] !== "mcp" && data["grk-type"] !== "rule") {
+    return { success: false, reason: "invalid-type-for-format" };
+  }
+
+  const frontmatter: ArtifactFrontmatter = {
+    "grk-type": data["grk-type"] as "mcp" | "rule",
+    "grk-name": data["grk-name"] as string,
+    "grk-description": data["grk-description"] as string,
+  };
+
+  const { "grk-type": _type, "grk-name": _name, "grk-description": _desc, ...rest } = data;
+
+  return { success: true, parsed: { frontmatter, content: rest } };
 }
 
 export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo | null {
@@ -99,19 +103,26 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
     commands: [],
     mcps: [],
     rules: [],
+    invalidFiles: [],
   };
 
-  // Scan for .md and .json files recursively
   const files = findFiles(fs, artifactDir);
 
-  // Process markdown files
   for (const filePath of files.mdFiles) {
     const content = fs.readFile(filePath);
-    const parsed = parseFrontmatter(content);
-
-    if (!parsed) continue;
-
+    const result = parseFrontmatter(content);
     const relativePath = relative(artifactDir, filePath);
+
+    if (!result.success) {
+      info.invalidFiles.push({
+        path: relativePath,
+        reason: result.reason,
+        missingFields: result.missingFields,
+      });
+      continue;
+    }
+
+    const { parsed } = result;
 
     switch (parsed.frontmatter["grk-type"]) {
       case "agent":
@@ -130,14 +141,21 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
     }
   }
 
-  // Process JSON files
   for (const filePath of files.jsonFiles) {
     const content = fs.readFile(filePath);
-    const parsed = parseJsonComponent(content);
-
-    if (!parsed) continue;
-
+    const result = parseJsonComponent(content);
     const relativePath = relative(artifactDir, filePath);
+
+    if (!result.success) {
+      info.invalidFiles.push({
+        path: relativePath,
+        reason: result.reason,
+        missingFields: result.missingFields,
+      });
+      continue;
+    }
+
+    const { parsed } = result;
 
     switch (parsed.frontmatter["grk-type"]) {
       case "mcp":
@@ -151,3 +169,10 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
 
   return info;
 }
+
+export type {
+  InvalidFileReason,
+  InvalidFile,
+  ParsedComponent,
+  ArtifactInfo,
+} from "./scanner.types";
