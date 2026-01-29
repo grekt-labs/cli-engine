@@ -69,6 +69,3 @@ export interface RulesOnlyPluginConfig {
   generateRulesContent: (lockfile: Lockfile) => string;
 }
 
-/** Block markers for managed content */
-export const GREKT_BLOCK_START = "<grekt-context>\n<untrusted>";
-export const GREKT_BLOCK_END = "</untrusted>\n</grekt-context>";
