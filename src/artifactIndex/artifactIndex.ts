@@ -1,5 +1,14 @@
 import type { ArtifactIndex, IndexEntry } from "#/schemas";
-import type { IndexGeneratorInput } from "./artifactIndex.types";
+import type { IndexGeneratorInput, SerializeIndexOptions } from "./artifactIndex.types";
+
+/** Terminology block for AIs that need term translation */
+const TERMINOLOGY_BLOCK = `<terminology>
+If you don't recognize these terms:
+- agent = custom agent / persona with specific expertise
+- skill = reusable capability invoked on-demand (same as Copilot/Windsurf skills)
+- command = slash command / workflow (e.g., /review)
+- rules = coding guidelines / instructions
+</terminology>`;
 
 /**
  * Generate an artifact index from a list of artifacts.
@@ -53,7 +62,8 @@ export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
 
 /**
  * Serialize index entries for a specific section.
- * Format: @scope/artifact:keyword1,keyword2,keyword3
+ * Format: @scope/artifact:keyword1,keyword2|mode
+ * Mode suffix: |core or |lazy (lazy is default, can be omitted)
  */
 function serializeEntries(entries: IndexEntry[]): string[] {
   const lines: string[] = [];
@@ -65,7 +75,8 @@ function serializeEntries(entries: IndexEntry[]): string[] {
     seen.add(entry.artifactId);
 
     const keywords = entry.keywords.join(",");
-    lines.push(`${entry.artifactId}:${keywords}`);
+    const modeSuffix = entry.mode === "core" ? "|core" : "";
+    lines.push(`${entry.artifactId}:${keywords}${modeSuffix}`);
   }
 
   return lines;
@@ -73,17 +84,26 @@ function serializeEntries(entries: IndexEntry[]): string[] {
 
 /**
  * Serialize the full index to a minified text format.
- * Only LAZY artifacts are indexed (CORE artifacts are already in context).
+ * Includes ALL artifacts (CORE and LAZY) for observability.
  *
  * Format:
+ * <terminology>...</terminology> (optional)
+ *
  * [agents]
- * @scope/artifact:keyword1,keyword2
+ * @scope/artifact:keyword1,keyword2|core
+ * @scope/other:keyword3
  *
  * [skills]
  * @scope/artifact:keyword1,keyword2
  */
-export function serializeIndex(index: ArtifactIndex): string {
+export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOptions): string {
   const sections: string[] = [];
+
+  // Add terminology block if requested (for AIs that need term translation)
+  if (options?.includeTerminology) {
+    sections.push(TERMINOLOGY_BLOCK);
+    sections.push(""); // Empty line after terminology
+  }
 
   if (index.agents.length > 0) {
     sections.push("[agents]");
@@ -144,19 +164,31 @@ export function parseIndex(content: string): ArtifactIndex {
 
     if (!currentSection) continue;
 
-    // Parse entry: @scope/artifact:keyword1,keyword2
+    // Parse entry: @scope/artifact:keyword1,keyword2|mode
     const colonIndex = line.indexOf(":");
 
     if (colonIndex === -1) continue;
 
     const artifactId = line.slice(0, colonIndex);
-    const keywordsStr = line.slice(colonIndex + 1);
-    const keywords = keywordsStr ? keywordsStr.split(",") : [];
+    let remainder = line.slice(colonIndex + 1);
+
+    // Check for mode suffix (|core or |lazy)
+    let mode: "core" | "lazy" = "lazy";
+    const pipeIndex = remainder.lastIndexOf("|");
+    if (pipeIndex !== -1) {
+      const modeSuffix = remainder.slice(pipeIndex + 1);
+      if (modeSuffix === "core" || modeSuffix === "lazy") {
+        mode = modeSuffix;
+        remainder = remainder.slice(0, pipeIndex);
+      }
+    }
+
+    const keywords = remainder ? remainder.split(",") : [];
 
     const entry: IndexEntry = {
       artifactId,
       keywords,
-      mode: "lazy", // Only LAZY artifacts are in the index
+      mode,
       path: "", // Path not stored in serialized format
     };
 
