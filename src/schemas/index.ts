@@ -29,10 +29,21 @@ export const ArtifactFrontmatterSchema = z.object({
 });
 export type ArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
 
-// Custom target configuration (for "Other" option in init)
+// Paths configuration for custom targets (directory per component type)
+export const ComponentPathsSchema = z.object({
+  agent: z.string().optional(),
+  skill: z.string().optional(),
+  command: z.string().optional(),
+  mcp: z.string().optional(),
+  rule: z.string().optional(),
+});
+export type ComponentPaths = z.infer<typeof ComponentPathsSchema>;
+
+// Custom target configuration (for "Other" option in init/sync)
 export const CustomTargetSchema = z.object({
   name: z.string(),
-  rulesFile: z.string(),
+  contextEntryPoint: z.string(),
+  paths: ComponentPathsSchema.optional(),
 });
 export type CustomTarget = z.infer<typeof CustomTargetSchema>;
 
