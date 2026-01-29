@@ -1,3 +1,10 @@
+# [3.7.0](https://github.com/grekt-labs/cli-engine/compare/v3.6.0...v3.7.0) (2026-01-29)
+
+
+### Features
+
+* **schema:** rename rulesFile to contextEntryPoint and add component paths ([#15](https://github.com/grekt-labs/cli-engine/issues/15)) ([79c8356](https://github.com/grekt-labs/cli-engine/commit/79c83565f2abaaf081c184b14420185be4a4a273))
+
 # [3.6.0](https://github.com/grekt-labs/cli-engine/compare/v3.5.0...v3.6.0) (2026-01-29)
 
 
