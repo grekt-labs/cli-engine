@@ -138,13 +138,30 @@ describe("schemas", () => {
     test("parses valid custom target", () => {
       const target = {
         name: "My Tool",
-        rulesFile: ".my-tool-rules",
+        contextEntryPoint: ".my-tool/instructions.md",
       };
 
       const result = CustomTargetSchema.parse(target);
 
       expect(result.name).toBe("My Tool");
-      expect(result.rulesFile).toBe(".my-tool-rules");
+      expect(result.contextEntryPoint).toBe(".my-tool/instructions.md");
+    });
+
+    test("parses custom target with paths", () => {
+      const target = {
+        name: "My Tool",
+        contextEntryPoint: ".my-tool/instructions.md",
+        paths: {
+          agent: ".my-tool/agents",
+          skill: ".my-tool/skills",
+        },
+      };
+
+      const result = CustomTargetSchema.parse(target);
+
+      expect(result.paths?.agent).toBe(".my-tool/agents");
+      expect(result.paths?.skill).toBe(".my-tool/skills");
+      expect(result.paths?.command).toBeUndefined();
     });
   });
 
@@ -248,7 +265,7 @@ describe("schemas", () => {
         customTargets: {
           "my-tool": {
             name: "My Tool",
-            rulesFile: ".my-tool-rules",
+            contextEntryPoint: ".my-tool/instructions.md",
           },
         },
       };

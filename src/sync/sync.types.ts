@@ -50,7 +50,14 @@ export interface FolderPluginConfig {
   id: string;
   name: string;
   targetDir: string;
-  rulesFile?: string;
+  contextEntryPoint?: string;
+  paths?: {
+    agent?: string;
+    skill?: string;
+    command?: string;
+    mcp?: string;
+    rule?: string;
+  };
   generateRulesContent?: (lockfile: Lockfile) => string;
 }
 
@@ -58,7 +65,7 @@ export interface FolderPluginConfig {
 export interface RulesOnlyPluginConfig {
   id: string;
   name: string;
-  rulesFile: string;
+  contextEntryPoint: string;
   generateRulesContent: (lockfile: Lockfile) => string;
 }
 
