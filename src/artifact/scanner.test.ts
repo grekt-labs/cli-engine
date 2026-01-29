@@ -147,7 +147,7 @@ grk-description: A command
       expect(result!.commands[0].parsed.frontmatter["grk-type"]).toBe("command");
     });
 
-    test("handles invalid frontmatter gracefully", () => {
+    test("handles invalid frontmatter gracefully and tracks invalid files", () => {
       const manifest = {
         name: "test",
         author: "author",
@@ -178,9 +178,13 @@ No frontmatter here`;
       const result = scanArtifact(fs, "/artifact");
 
       expect(result).not.toBeNull();
-      // Should only find the valid skill
       expect(result!.skills).toHaveLength(1);
       expect(result!.skills[0].path).toBe("valid.md");
+
+      expect(result!.invalidFiles).toHaveLength(2);
+      const invalidPaths = result!.invalidFiles.map((f) => f.path);
+      expect(invalidPaths).toContain("invalid.md");
+      expect(invalidPaths).toContain("plain.md");
     });
 
     test("returns empty arrays when no components found", () => {
@@ -202,6 +206,48 @@ No frontmatter here`;
       expect(result!.agent).toBeUndefined();
       expect(result!.skills).toHaveLength(0);
       expect(result!.commands).toHaveLength(0);
+      expect(result!.invalidFiles).toHaveLength(1);
+      expect(result!.invalidFiles[0].reason).toBe("no-frontmatter");
+    });
+
+    test("tracks missing fields in invalid files", () => {
+      const manifest = {
+        name: "test",
+        author: "author",
+        version: "1.0.0",
+        description: "desc",
+      };
+      const missingName = `---
+grk-type: skill
+grk-description: Missing name
+---
+# Content`;
+      const missingDesc = `---
+grk-type: agent
+grk-name: Has name
+---
+# Content`;
+
+      const fs = createMockFileSystem({
+        "/artifact/grekt.yaml": stringify(manifest),
+        "/artifact/no-name.md": missingName,
+        "/artifact/no-desc.md": missingDesc,
+      });
+
+      const result = scanArtifact(fs, "/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.invalidFiles).toHaveLength(2);
+
+      const noName = result!.invalidFiles.find((f) => f.path === "no-name.md");
+      expect(noName).toBeDefined();
+      expect(noName!.reason).toBe("missing-name");
+      expect(noName!.missingFields).toContain("grk-name");
+
+      const noDesc = result!.invalidFiles.find((f) => f.path === "no-desc.md");
+      expect(noDesc).toBeDefined();
+      expect(noDesc!.reason).toBe("missing-description");
+      expect(noDesc!.missingFields).toContain("grk-description");
     });
 
     test("handles complete artifact structure", () => {
