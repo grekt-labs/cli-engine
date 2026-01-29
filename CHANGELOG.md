@@ -1,3 +1,10 @@
+# [3.6.0](https://github.com/grekt-labs/cli-engine/compare/v3.5.0...v3.6.0) (2026-01-29)
+
+
+### Features
+
+* **scanner:** track invalid files with detailed error reasons ([#14](https://github.com/grekt-labs/cli-engine/issues/14)) ([9b12efd](https://github.com/grekt-labs/cli-engine/commit/9b12efd21badfd362193c31c6be31a0396a11567))
+
 # [3.5.0](https://github.com/grekt-labs/cli-engine/compare/v3.4.0...v3.5.0) (2026-01-29)
 
 
