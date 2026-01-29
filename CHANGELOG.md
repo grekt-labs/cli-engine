@@ -1,3 +1,10 @@
+# [3.5.0](https://github.com/grekt-labs/cli-engine/compare/v3.4.0...v3.5.0) (2026-01-29)
+
+
+### Features
+
+* **schema:** unify project and artifact config schema ([422a896](https://github.com/grekt-labs/cli-engine/commit/422a8968120ad5577af7188257a15b03aab022b5))
+
 # [3.4.0](https://github.com/grekt-labs/cli-engine/compare/v3.3.0...v3.4.0) (2026-01-29)
 
 
