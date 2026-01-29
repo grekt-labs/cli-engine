@@ -63,5 +63,5 @@ export interface RulesOnlyPluginConfig {
 }
 
 /** Block markers for managed content */
-export const GREKT_BLOCK_START = "<!-- GREKT -->";
-export const GREKT_BLOCK_END = "<!-- /GREKT -->";
+export const GREKT_BLOCK_START = "<grekt-context>\n<untrusted>";
+export const GREKT_BLOCK_END = "</untrusted>\n</grekt-context>";
