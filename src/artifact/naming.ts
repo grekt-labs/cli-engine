@@ -1,4 +1,5 @@
 import { basename } from "path";
+import type { ArtifactManifest } from "#/schemas";
 
 /**
  * Create a namespaced filename to avoid collisions between artifacts.
@@ -30,4 +31,13 @@ export function toSafeName(artifactId: string): string {
  */
 export function getArtifactId(author: string, name: string): string {
   return `@${author}/${name}`;
+}
+
+/**
+ * Get artifact ID from manifest.
+ *
+ * @example getArtifactIdFromManifest({ author: "grekt", name: "analyzer", ... }) → "@grekt/analyzer"
+ */
+export function getArtifactIdFromManifest(manifest: ArtifactManifest): string {
+  return getArtifactId(manifest.author, manifest.name);
 }
