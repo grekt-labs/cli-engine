@@ -114,6 +114,7 @@ export const LockfileEntrySchema = z.object({
   integrity: z.string(), // SHA256 hash of entire artifact
   source: z.string().optional(),
   resolved: z.string().optional(), // Full URL, IMMUTABLE after write
+  mode: ArtifactModeSchema.default("lazy"), // core = copied to target, lazy = only in index
   files: z.record(z.string(), z.string()).default({}), // per-file hashes: { "agent.md": "sha256:abc..." }
   // Component paths (where to find agents/skills/commands in the artifact)
   agent: z.string().optional(), // relative path to agent.md if exists

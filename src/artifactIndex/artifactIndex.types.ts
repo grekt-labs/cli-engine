@@ -14,5 +14,11 @@ export interface IndexGeneratorInput {
   };
 }
 
+// Options for serializing the index
+export interface SerializeIndexOptions {
+  /** Include terminology block for AIs that need term translation */
+  includeTerminology?: boolean;
+}
+
 // Re-export for convenience
 export type { ArtifactIndex, IndexEntry, ArtifactMode };
