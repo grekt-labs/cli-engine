@@ -83,31 +83,31 @@ describe("schemas", () => {
   });
 
   describe("ArtifactFrontmatterSchema", () => {
-    test("parses agent frontmatter", () => {
+    test("parses agents frontmatter", () => {
       const frontmatter = {
-        "grk-type": "agent",
+        "grk-type": "agents",
         "grk-name": "Code Reviewer",
         "grk-description": "Reviews code for best practices",
       };
 
       const result = ArtifactFrontmatterSchema.parse(frontmatter);
 
-      expect(result["grk-type"]).toBe("agent");
+      expect(result["grk-type"]).toBe("agents");
       expect(result["grk-name"]).toBe("Code Reviewer");
     });
 
-    test("parses skill with agent reference", () => {
+    test("parses skills with agents reference", () => {
       const frontmatter = {
-        "grk-type": "skill",
+        "grk-type": "skills",
         "grk-name": "Testing Skill",
         "grk-description": "Helps with testing",
-        "grk-agent": "code-reviewer",
+        "grk-agents": "code-reviewer",
       };
 
       const result = ArtifactFrontmatterSchema.parse(frontmatter);
 
-      expect(result["grk-type"]).toBe("skill");
-      expect(result["grk-agent"]).toBe("code-reviewer");
+      expect(result["grk-type"]).toBe("skills");
+      expect(result["grk-agents"]).toBe("code-reviewer");
     });
 
     test("rejects invalid type", () => {
@@ -121,7 +121,7 @@ describe("schemas", () => {
     });
 
     test("accepts all valid types", () => {
-      const types = ["agent", "skill", "command"] as const;
+      const types = ["agents", "skills", "commands"] as const;
 
       for (const type of types) {
         const result = ArtifactFrontmatterSchema.parse({
@@ -152,16 +152,16 @@ describe("schemas", () => {
         name: "My Tool",
         contextEntryPoint: ".my-tool/instructions.md",
         paths: {
-          agent: ".my-tool/agents",
-          skill: ".my-tool/skills",
+          agents: ".my-tool/agents",
+          skills: ".my-tool/skills",
         },
       };
 
       const result = CustomTargetSchema.parse(target);
 
-      expect(result.paths?.agent).toBe(".my-tool/agents");
-      expect(result.paths?.skill).toBe(".my-tool/skills");
-      expect(result.paths?.command).toBeUndefined();
+      expect(result.paths?.agents).toBe(".my-tool/agents");
+      expect(result.paths?.skills).toBe(".my-tool/skills");
+      expect(result.paths?.commands).toBeUndefined();
     });
   });
 
@@ -175,7 +175,7 @@ describe("schemas", () => {
     test("parses object with selected components", () => {
       const entry = {
         version: "1.0.0",
-        agent: true,
+        agents: true,
         skills: ["skills/testing.md"],
         commands: ["commands/review.md"],
       };
@@ -411,6 +411,7 @@ describe("schemas", () => {
       expect(result.version).toBe("1.0.0");
       expect(result.integrity).toBe("sha256:abc123");
       expect(result.files).toEqual({});
+      expect(result.agents).toEqual([]);
       expect(result.skills).toEqual([]);
       expect(result.commands).toEqual([]);
     });
@@ -422,10 +423,10 @@ describe("schemas", () => {
         resolve: "registry",
         resolved: `https://${REGISTRY_HOST}/artifacts/test/1.0.0.tar.gz`,
         files: {
-          "agent.md": "sha256:def456",
+          "agents/main.md": "sha256:def456",
           "skills/testing.md": "sha256:ghi789",
         },
-        agent: "agent.md",
+        agents: ["agents/main.md"],
         skills: ["skills/testing.md"],
         commands: [],
       };
@@ -435,8 +436,8 @@ describe("schemas", () => {
       expect(result.resolved).toBe(
         `https://${REGISTRY_HOST}/artifacts/test/1.0.0.tar.gz`
       );
-      expect(result.files["agent.md"]).toBe("sha256:def456");
-      expect(result.agent).toBe("agent.md");
+      expect(result.files["agents/main.md"]).toBe("sha256:def456");
+      expect(result.agents).toContain("agents/main.md");
       expect(result.skills).toContain("skills/testing.md");
     });
 

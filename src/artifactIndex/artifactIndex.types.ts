@@ -1,17 +1,15 @@
 import type { ArtifactMode, ArtifactIndex, IndexEntry } from "#/schemas";
+import type { Category } from "#/categories";
+
+// Component file paths indexed by category (for index generation)
+export type CategoryFilePaths = Record<Category, string[]>;
 
 // Input for generating index entries
 export interface IndexGeneratorInput {
   artifactId: string;
   keywords: string[];
   mode: ArtifactMode;
-  components: {
-    agents: string[]; // relative paths
-    skills: string[];
-    commands: string[];
-    mcps: string[];
-    rules: string[];
-  };
+  components: CategoryFilePaths;
 }
 
 // Options for serializing the index

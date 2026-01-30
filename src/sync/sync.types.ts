@@ -4,7 +4,7 @@
  * Types for the sync system that copies artifacts to tool-specific targets.
  */
 
-import type { Lockfile, ProjectConfig } from "#/schemas";
+import type { Lockfile, ProjectConfig, ComponentPaths } from "#/schemas";
 
 export interface SyncResult {
   created: string[];
@@ -51,13 +51,7 @@ export interface FolderPluginConfig {
   name: string;
   targetDir: string;
   contextEntryPoint?: string;
-  paths?: {
-    agent?: string;
-    skill?: string;
-    command?: string;
-    mcp?: string;
-    rule?: string;
-  };
+  paths?: Partial<ComponentPaths>;
   generateRulesContent?: (lockfile: Lockfile) => string;
 }
 

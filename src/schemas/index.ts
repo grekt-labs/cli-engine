@@ -1,5 +1,13 @@
 import { z } from "zod";
 import { isValidSemver } from "#/version";
+import { CATEGORIES, CATEGORY_CONFIG, type Category } from "#/categories";
+
+// Helper to create category-keyed schemas dynamically
+function createCategoryRecord<T extends z.ZodTypeAny>(schema: T) {
+  return z.object(
+    Object.fromEntries(CATEGORIES.map((cat) => [cat, schema])) as Record<Category, T>
+  );
+}
 
 // Sync targets (validated at runtime against registered plugins)
 export type SyncTarget = string;
@@ -22,21 +30,15 @@ export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
 // Artifact component frontmatter (YAML at top of .md files)
 // Uses grk- prefix to avoid collisions with other tools' frontmatter
 export const ArtifactFrontmatterSchema = z.object({
-  "grk-type": z.enum(["agent", "skill", "command", "mcp", "rule"]),
+  "grk-type": z.enum(CATEGORIES),
   "grk-name": z.string(),
   "grk-description": z.string(),
-  "grk-agent": z.string().optional(), // for skills/commands that belong to an agent
+  "grk-agents": z.string().optional(), // for skills/commands that belong to an agent
 });
 export type ArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
 
 // Paths configuration for custom targets (directory per component type)
-export const ComponentPathsSchema = z.object({
-  agent: z.string().optional(),
-  skill: z.string().optional(),
-  command: z.string().optional(),
-  mcp: z.string().optional(),
-  rule: z.string().optional(),
-});
+export const ComponentPathsSchema = createCategoryRecord(z.string().optional());
 export type ComponentPaths = z.infer<typeof ComponentPathsSchema>;
 
 // Custom target configuration (for "Other" option in init/sync)
@@ -52,14 +54,22 @@ export const ArtifactModeSchema = z.enum(["core", "lazy"]);
 export type ArtifactMode = z.infer<typeof ArtifactModeSchema>;
 
 // Artifact entry in grekt.yaml - either version string (all) or object (selected components)
+// Category selection fields: unique categories get boolean, others get array of paths
+const artifactEntryCategoryFields = Object.fromEntries(
+  CATEGORIES.map((cat) => [
+    cat,
+    CATEGORY_CONFIG[cat].isUnique
+      ? z.boolean().optional()
+      : z.array(z.string()).optional(),
+  ])
+) as Record<Category, z.ZodOptional<z.ZodBoolean> | z.ZodOptional<z.ZodArray<z.ZodString>>>;
+
 export const ArtifactEntrySchema = z.union([
   SemverSchema, // "1.0.0" = all components, LAZY mode
   z.object({
     version: SemverSchema,
     mode: ArtifactModeSchema.default("lazy"), // LAZY by default, CORE opt-in
-    agent: z.boolean().optional(), // true = include, false/omitted = exclude
-    skills: z.array(z.string()).optional(), // paths to include
-    commands: z.array(z.string()).optional(), // paths to include
+    ...artifactEntryCategoryFields,
   }),
 ]);
 export type ArtifactEntry = z.infer<typeof ArtifactEntrySchema>;
@@ -148,18 +158,17 @@ export const CredentialsSchema = z.record(
 export type Credentials = z.infer<typeof CredentialsSchema>;
 
 // Lockfile entry (grekt.lock) - pinned versions, integrity hashes, and resolved URLs for reproducible installs
-export const LockfileEntrySchema = z.object({
+const lockfileBaseSchema = z.object({
   version: SemverSchema,
   integrity: z.string(), // SHA256 hash of entire artifact
   source: z.string().optional(),
   resolved: z.string().optional(), // Full URL, IMMUTABLE after write
   mode: ArtifactModeSchema.default("lazy"), // core = copied to target, lazy = only in index
   files: z.record(z.string(), z.string()).default({}), // per-file hashes: { "agent.md": "sha256:abc..." }
-  // Component paths (where to find agents/skills/commands in the artifact)
-  agent: z.string().optional(), // relative path to agent.md if exists
-  skills: z.array(z.string()).default([]), // relative paths to skill files
-  commands: z.array(z.string()).default([]), // relative paths to command files
 });
+// Component paths (where to find components in the artifact) - generated from CATEGORIES
+const lockfileCategorySchema = createCategoryRecord(z.array(z.string()).default([]));
+export const LockfileEntrySchema = lockfileBaseSchema.merge(lockfileCategorySchema);
 
 export const LockfileSchema = z.object({
   version: z.literal(1),
@@ -220,7 +229,7 @@ export const LocalConfigSchema = z.object({
 export type LocalConfig = z.infer<typeof LocalConfigSchema>;
 
 // Component types for the artifact index
-export const ComponentTypeSchema = z.enum(["agent", "skill", "command", "mcp", "rule"]);
+export const ComponentTypeSchema = z.enum(CATEGORIES);
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 
 // Index entry for a single component
@@ -232,13 +241,8 @@ export const IndexEntrySchema = z.object({
 });
 export type IndexEntry = z.infer<typeof IndexEntrySchema>;
 
-// Full artifact index structure
-export const ArtifactIndexSchema = z.object({
-  version: z.literal(1),
-  agents: z.array(IndexEntrySchema).default([]),
-  skills: z.array(IndexEntrySchema).default([]),
-  commands: z.array(IndexEntrySchema).default([]),
-  mcps: z.array(IndexEntrySchema).default([]),
-  rules: z.array(IndexEntrySchema).default([]),
-});
+// Full artifact index structure - generated from CATEGORIES
+const indexBaseSchema = z.object({ version: z.literal(1) });
+const indexCategorySchema = createCategoryRecord(z.array(IndexEntrySchema).default([]));
+export const ArtifactIndexSchema = indexBaseSchema.merge(indexCategorySchema);
 export type ArtifactIndex = z.infer<typeof ArtifactIndexSchema>;

@@ -8,6 +8,9 @@
 // Core interfaces
 export * from '#/core';
 
+// Categories (central definition of artifact component types)
+export * from '#/categories';
+
 // Schemas (Zod validation)
 export * from '#/schemas';
 

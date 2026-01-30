@@ -2,13 +2,18 @@ import { join, relative } from "path";
 import { parse } from "yaml";
 import type { FileSystem } from "#/core";
 import { ArtifactManifestSchema, type ArtifactManifest, type ArtifactFrontmatter } from "#/schemas";
+import { CATEGORIES, type Category, getCategoriesForFormat, createCategoryRecord } from "#/categories";
 import { parseFrontmatter } from "./frontmatter";
 import type {
   InvalidFileReason,
   InvalidFile,
   ParsedComponent,
+  ScannedFile,
   ArtifactInfo,
 } from "./scanner.types";
+
+const MD_CATEGORIES = getCategoriesForFormat("md");
+const JSON_CATEGORIES = getCategoriesForFormat("json");
 
 function readArtifactManifest(fs: FileSystem, artifactDir: string): ArtifactManifest | null {
   const manifestPath = join(artifactDir, "grekt.yaml");
@@ -78,12 +83,13 @@ function parseJsonComponent(content: string): JsonParseResult {
     return { success: false, reason, missingFields };
   }
 
-  if (data["grk-type"] !== "mcp" && data["grk-type"] !== "rule") {
+  const category = data["grk-type"] as Category;
+  if (!JSON_CATEGORIES.includes(category)) {
     return { success: false, reason: "invalid-type-for-format" };
   }
 
   const frontmatter: ArtifactFrontmatter = {
-    "grk-type": data["grk-type"] as "mcp" | "rule",
+    "grk-type": category,
     "grk-name": data["grk-name"] as string,
     "grk-description": data["grk-description"] as string,
   };
@@ -97,13 +103,11 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
   const manifest = readArtifactManifest(fs, artifactDir);
   if (!manifest) return null;
 
+  // Initialize info with empty arrays for all categories
   const info: ArtifactInfo = {
     manifest,
-    skills: [],
-    commands: [],
-    mcps: [],
-    rules: [],
     invalidFiles: [],
+    ...createCategoryRecord<ScannedFile[]>(() => []),
   };
 
   const files = findFiles(fs, artifactDir);
@@ -123,21 +127,10 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
     }
 
     const { parsed } = result;
+    const category = parsed.frontmatter["grk-type"] as Category;
 
-    switch (parsed.frontmatter["grk-type"]) {
-      case "agent":
-        info.agent = { path: relativePath, parsed };
-        break;
-      case "skill":
-        info.skills.push({ path: relativePath, parsed });
-        break;
-      case "command":
-        info.commands.push({ path: relativePath, parsed });
-        break;
-      case "mcp":
-      case "rule":
-        // MD files can also define mcp/rule types
-        break;
+    if (MD_CATEGORIES.includes(category)) {
+      info[category].push({ path: relativePath, parsed });
     }
   }
 
@@ -156,14 +149,10 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
     }
 
     const { parsed } = result;
+    const category = parsed.frontmatter["grk-type"] as Category;
 
-    switch (parsed.frontmatter["grk-type"]) {
-      case "mcp":
-        info.mcps.push({ path: relativePath, parsed });
-        break;
-      case "rule":
-        info.rules.push({ path: relativePath, parsed });
-        break;
+    if (JSON_CATEGORIES.includes(category)) {
+      info[category].push({ path: relativePath, parsed });
     }
   }
 
@@ -174,5 +163,7 @@ export type {
   InvalidFileReason,
   InvalidFile,
   ParsedComponent,
+  ParsedArtifact,
+  ScannedFile,
   ArtifactInfo,
 } from "./scanner.types";

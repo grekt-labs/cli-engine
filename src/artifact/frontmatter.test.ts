@@ -4,7 +4,7 @@ import { parseFrontmatter } from "./frontmatter";
 describe("frontmatter", () => {
   test("parseFrontmatter extracts YAML from markdown", () => {
     const content = `---
-grk-type: agent
+grk-type: agents
 grk-name: Test Agent
 grk-description: A test agent
 ---
@@ -15,7 +15,7 @@ grk-description: A test agent
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.parsed.frontmatter["grk-type"]).toBe("agent");
+      expect(result.parsed.frontmatter["grk-type"]).toBe("agents");
       expect(result.parsed.frontmatter["grk-name"]).toBe("Test Agent");
       expect(result.parsed.content).toContain("# Agent content here");
     }
@@ -23,10 +23,10 @@ grk-description: A test agent
 
   test("parseFrontmatter validates against schema", () => {
     const content = `---
-grk-type: skill
+grk-type: skills
 grk-name: Test Skill
 grk-description: A test skill
-grk-agent: my-agent
+grk-agents: my-agent
 ---
 
 Skill content`;
@@ -35,8 +35,8 @@ Skill content`;
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.parsed.frontmatter["grk-type"]).toBe("skill");
-      expect(result.parsed.frontmatter["grk-agent"]).toBe("my-agent");
+      expect(result.parsed.frontmatter["grk-type"]).toBe("skills");
+      expect(result.parsed.frontmatter["grk-agents"]).toBe("my-agent");
     }
   });
 
@@ -59,7 +59,7 @@ Content`;
 
   test("parseFrontmatter returns error for missing required fields", () => {
     const content = `---
-grk-type: agent
+grk-type: agents
 ---
 
 Content`;
