@@ -175,7 +175,7 @@ describe("schemas", () => {
     test("parses object with selected components", () => {
       const entry = {
         version: "1.0.0",
-        agents: true,
+        agents: ["agents/coder.md"],
         skills: ["skills/testing.md"],
         commands: ["commands/review.md"],
       };

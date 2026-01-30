@@ -54,15 +54,10 @@ export const ArtifactModeSchema = z.enum(["core", "lazy"]);
 export type ArtifactMode = z.infer<typeof ArtifactModeSchema>;
 
 // Artifact entry in grekt.yaml - either version string (all) or object (selected components)
-// Category selection fields: unique categories get boolean, others get array of paths
+// Category selection fields are arrays of paths
 const artifactEntryCategoryFields = Object.fromEntries(
-  CATEGORIES.map((cat) => [
-    cat,
-    CATEGORY_CONFIG[cat].isUnique
-      ? z.boolean().optional()
-      : z.array(z.string()).optional(),
-  ])
-) as Record<Category, z.ZodOptional<z.ZodBoolean> | z.ZodOptional<z.ZodArray<z.ZodString>>>;
+  CATEGORIES.map((cat) => [cat, z.array(z.string()).optional()])
+) as Record<Category, z.ZodOptional<z.ZodArray<z.ZodString>>>;
 
 export const ArtifactEntrySchema = z.union([
   SemverSchema, // "1.0.0" = all components, LAZY mode
