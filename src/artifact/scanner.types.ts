@@ -1,4 +1,5 @@
 import type { ArtifactFrontmatter, ArtifactManifest } from "#/schemas";
+import type { Category } from "#/categories";
 
 // Reasons why a file was considered invalid
 export type InvalidFileReason =
@@ -27,12 +28,14 @@ export interface ParsedComponent {
   content: unknown;
 }
 
-export interface ArtifactInfo {
-  manifest: ArtifactManifest;
-  agent?: { path: string; parsed: ParsedArtifact };
-  skills: { path: string; parsed: ParsedArtifact }[];
-  commands: { path: string; parsed: ParsedArtifact }[];
-  mcps: { path: string; parsed: ParsedComponent }[];
-  rules: { path: string; parsed: ParsedComponent }[];
-  invalidFiles: InvalidFile[];
+// Scanned file entry (path + parsed content)
+export interface ScannedFile {
+  path: string;
+  parsed: ParsedArtifact | ParsedComponent;
 }
+
+// ArtifactInfo with dynamic category keys
+export type ArtifactInfo = {
+  manifest: ArtifactManifest;
+  invalidFiles: InvalidFile[];
+} & Record<Category, ScannedFile[]>;

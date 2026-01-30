@@ -1,4 +1,5 @@
 import type { ArtifactIndex, IndexEntry } from "#/schemas";
+import { CATEGORIES, isValidCategory, type Category } from "#/categories";
 import type { IndexGeneratorInput, SerializeIndexOptions } from "./artifactIndex.types";
 
 /** Terminology block for AIs that need term translation */
@@ -10,19 +11,21 @@ If you don't recognize these terms:
 - rules = coding guidelines / instructions
 </terminology>`;
 
+/** Create an empty index with all category arrays initialized */
+function createEmptyIndex(): ArtifactIndex {
+  const index = { version: 1 } as ArtifactIndex;
+  for (const category of CATEGORIES) {
+    index[category] = [];
+  }
+  return index;
+}
+
 /**
  * Generate an artifact index from a list of artifacts.
  * The index contains all components from all artifacts, categorized by type.
  */
 export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
-  const index: ArtifactIndex = {
-    version: 1,
-    agents: [],
-    skills: [],
-    commands: [],
-    mcps: [],
-    rules: [],
-  };
+  const index = createEmptyIndex();
 
   for (const artifact of artifacts) {
     const baseEntry = {
@@ -31,29 +34,10 @@ export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
       mode: artifact.mode,
     };
 
-    // Add agents
-    for (const path of artifact.components.agents) {
-      index.agents.push({ ...baseEntry, path });
-    }
-
-    // Add skills
-    for (const path of artifact.components.skills) {
-      index.skills.push({ ...baseEntry, path });
-    }
-
-    // Add commands
-    for (const path of artifact.components.commands) {
-      index.commands.push({ ...baseEntry, path });
-    }
-
-    // Add MCPs
-    for (const path of artifact.components.mcps) {
-      index.mcps.push({ ...baseEntry, path });
-    }
-
-    // Add rules
-    for (const path of artifact.components.rules) {
-      index.rules.push({ ...baseEntry, path });
+    for (const category of CATEGORIES) {
+      for (const path of artifact.components[category]) {
+        index[category].push({ ...baseEntry, path });
+      }
     }
   }
 
@@ -105,29 +89,11 @@ export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOpt
     sections.push(""); // Empty line after terminology
   }
 
-  if (index.agents.length > 0) {
-    sections.push("[agents]");
-    sections.push(...serializeEntries(index.agents));
-  }
-
-  if (index.skills.length > 0) {
-    sections.push("[skills]");
-    sections.push(...serializeEntries(index.skills));
-  }
-
-  if (index.commands.length > 0) {
-    sections.push("[commands]");
-    sections.push(...serializeEntries(index.commands));
-  }
-
-  if (index.mcps.length > 0) {
-    sections.push("[mcps]");
-    sections.push(...serializeEntries(index.mcps));
-  }
-
-  if (index.rules.length > 0) {
-    sections.push("[rules]");
-    sections.push(...serializeEntries(index.rules));
+  for (const category of CATEGORIES) {
+    if (index[category].length > 0) {
+      sections.push(`[${category}]`);
+      sections.push(...serializeEntries(index[category]));
+    }
   }
 
   return sections.join("\n");
@@ -138,16 +104,9 @@ export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOpt
  * Used for reading existing index files.
  */
 export function parseIndex(content: string): ArtifactIndex {
-  const index: ArtifactIndex = {
-    version: 1,
-    agents: [],
-    skills: [],
-    commands: [],
-    mcps: [],
-    rules: [],
-  };
+  const index = createEmptyIndex();
 
-  let currentSection: keyof Omit<ArtifactIndex, "version"> | null = null;
+  let currentSection: Category | null = null;
 
   const lines = content.split("\n").filter((line) => line.trim());
 
@@ -156,8 +115,8 @@ export function parseIndex(content: string): ArtifactIndex {
     const sectionMatch = line.match(/^\[(\w+)\]$/);
     if (sectionMatch) {
       const sectionName = sectionMatch[1];
-      if (sectionName && sectionName in index && sectionName !== "version") {
-        currentSection = sectionName as keyof Omit<ArtifactIndex, "version">;
+      if (sectionName && isValidCategory(sectionName)) {
+        currentSection = sectionName;
       }
       continue;
     }
