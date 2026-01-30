@@ -1,3 +1,10 @@
+# [3.8.0](https://github.com/grekt-labs/cli-engine/compare/v3.7.1...v3.8.0) (2026-01-30)
+
+
+### Features
+
+* trigger release ([a38186d](https://github.com/grekt-labs/cli-engine/commit/a38186df51e0200f05dfde7edb20fbfd2bfb492c))
+
 ## [3.7.1](https://github.com/grekt-labs/cli-engine/compare/v3.7.0...v3.7.1) (2026-01-29)
 
 
