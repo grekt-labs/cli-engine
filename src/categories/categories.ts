@@ -12,23 +12,18 @@ export type Category = (typeof CATEGORIES)[number];
 export type FileFormat = "md" | "json";
 
 export interface CategoryConfig {
-  isUnique: boolean;
   singular: string;
   defaultPath: string;
   allowedFormats: FileFormat[];
 }
 
 export const CATEGORY_CONFIG: Record<Category, CategoryConfig> = {
-  agents:   { isUnique: true,  singular: "agent",   defaultPath: "agents",   allowedFormats: ["md"] },
-  skills:   { isUnique: false, singular: "skill",   defaultPath: "skills",   allowedFormats: ["md"] },
-  commands: { isUnique: false, singular: "command", defaultPath: "commands", allowedFormats: ["md"] },
-  mcps:     { isUnique: false, singular: "mcp",     defaultPath: "mcps",     allowedFormats: ["json"] },
-  rules:    { isUnique: false, singular: "rule",    defaultPath: "rules",    allowedFormats: ["json"] },
+  agents: { singular: "agent", defaultPath: "agents", allowedFormats: ["md"] },
+  skills: { singular: "skill", defaultPath: "skills", allowedFormats: ["md"] },
+  commands: { singular: "command", defaultPath: "commands", allowedFormats: ["md"] },
+  mcps: { singular: "mcp", defaultPath: "mcps", allowedFormats: ["json"] },
+  rules: { singular: "rule", defaultPath: "rules", allowedFormats: ["json"] },
 };
-
-export function isUniqueCategory(category: Category): boolean {
-  return CATEGORY_CONFIG[category].isUnique;
-}
 
 export function isValidCategory(value: string): value is Category {
   return CATEGORIES.includes(value as Category);
