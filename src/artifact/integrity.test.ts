@@ -7,6 +7,8 @@ import {
 } from "./integrity";
 import { createMockFileSystem } from "#/test-utils/mocks";
 
+const HASH_PATTERN = /^sha256:[a-f0-9]{32}$/;
+
 describe("integrity", () => {
   describe("hashDirectory", () => {
     test("returns empty object for empty directory", () => {
@@ -27,8 +29,8 @@ describe("integrity", () => {
       const result = hashDirectory(fs, "/dir");
 
       expect(Object.keys(result)).toHaveLength(2);
-      expect(result["file1.txt"]).toMatch(/^sha256:[a-f0-9]{16}$/);
-      expect(result["file2.txt"]).toMatch(/^sha256:[a-f0-9]{16}$/);
+      expect(result["file1.txt"]).toMatch(HASH_PATTERN);
+      expect(result["file2.txt"]).toMatch(HASH_PATTERN);
     });
 
     test("produces consistent hashes for same content", () => {
@@ -92,7 +94,7 @@ describe("integrity", () => {
 
       const result = calculateIntegrity(fileHashes);
 
-      expect(result).toMatch(/^sha256:[a-f0-9]{16}$/);
+      expect(result).toMatch(HASH_PATTERN);
     });
 
     test("produces deterministic hash regardless of object key order", () => {
@@ -136,7 +138,7 @@ describe("integrity", () => {
     test("handles empty file hashes", () => {
       const result = calculateIntegrity({});
 
-      expect(result).toMatch(/^sha256:[a-f0-9]{16}$/);
+      expect(result).toMatch(HASH_PATTERN);
     });
   });
 
