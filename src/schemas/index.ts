@@ -17,13 +17,18 @@ export const SemverSchema = z.string().refine(isValidSemver, {
   message: "Invalid semver version. Must be valid semver (e.g., 1.0.0, 2.1.0-beta.1)",
 });
 
+// Keywords schemas
+export const KeywordSchema = z.string().trim().min(1);
+export const KeywordsSchema = z.array(KeywordSchema);
+export const KeywordsPublishSchema = KeywordsSchema.min(3).max(5);
+
 // Artifact manifest (grekt.yaml inside each published artifact)
 export const ArtifactManifestSchema = z.object({
   name: z.string(),
   author: z.string(),
   version: SemverSchema,
   description: z.string(),
-  keywords: z.array(z.string()).optional(), // Required in publish (3-5 keywords)
+  keywords: KeywordsSchema.optional(),
 });
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
 
@@ -84,7 +89,7 @@ export const ProjectConfigSchema = z.object({
   author: z.string().optional(),
   version: SemverSchema.optional(),
   description: z.string().optional(),
-  keywords: z.array(z.string()).optional(),
+  keywords: KeywordsSchema.optional(),
 
   // Config fields (for consuming artifacts)
   targets: z.array(z.string()).default([]),
@@ -230,7 +235,7 @@ export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 // Index entry for a single component
 export const IndexEntrySchema = z.object({
   artifactId: z.string(), // @scope/name
-  keywords: z.array(z.string()),
+  keywords: KeywordsSchema,
   mode: ArtifactModeSchema, // core or lazy
   path: z.string(), // relative path within artifact
 });
