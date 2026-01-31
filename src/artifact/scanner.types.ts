@@ -15,6 +15,7 @@ export interface InvalidFile {
   path: string;
   reason: InvalidFileReason;
   missingFields?: string[];
+  details?: string; // Human-readable error details (e.g., "grk-type: expected 'agents' but got 'agent'")
 }
 
 export interface ParsedArtifact {
