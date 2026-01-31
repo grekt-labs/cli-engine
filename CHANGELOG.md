@@ -1,3 +1,10 @@
+# [4.4.0](https://github.com/grekt-labs/cli-engine/compare/v4.3.1...v4.4.0) (2026-01-31)
+
+
+### Features
+
+* **sync:** wrap index in grekt-untrusted-context and add MANDATORY section ([0593241](https://github.com/grekt-labs/cli-engine/commit/0593241716d3bc19c4321fcc835cd4f54163ca26))
+
 ## [4.3.1](https://github.com/grekt-labs/cli-engine/compare/v4.3.0...v4.3.1) (2026-01-31)
 
 
