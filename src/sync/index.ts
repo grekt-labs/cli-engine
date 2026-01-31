@@ -7,12 +7,17 @@
 
 export * from "./sync.types";
 
-/** Block marker tag for managed content (single line, inserted at start of file) */
-export const GREKT_BLOCK_TAG = "grekt-untrusted-context";
-export const GREKT_BLOCK_START = `<${GREKT_BLOCK_TAG}>`;
-export const GREKT_BLOCK_END = `</${GREKT_BLOCK_TAG}>`;
+/** Block marker for untrusted content (index file) */
+export const GREKT_UNTRUSTED_TAG = "grekt-untrusted-context";
+export const GREKT_UNTRUSTED_START = `<${GREKT_UNTRUSTED_TAG}>`;
+export const GREKT_UNTRUSTED_END = `</${GREKT_UNTRUSTED_TAG}>`;
 
-/** Default block content for context entry points */
+/** Section header to detect if grekt block exists in context entry point */
+export const GREKT_SECTION_HEADER = "## Grekt Artifacts (MANDATORY)";
+
+/** Content block for context entry points (CLAUDE.md, etc.) */
 export function generateDefaultBlockContent(): string {
-  return `${GREKT_BLOCK_START}This project uses grekt for AI artifact management. Index location: .grekt/index${GREKT_BLOCK_END}`;
+  return `${GREKT_SECTION_HEADER}
+
+**Always read \`.grekt/index\` at the start of a session.**`;
 }

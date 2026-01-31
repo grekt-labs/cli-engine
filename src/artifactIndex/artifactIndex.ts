@@ -1,9 +1,10 @@
 import type { ArtifactIndex, IndexEntry } from "#/schemas";
 import { CATEGORIES } from "#/categories";
 import type { IndexGeneratorInput, SerializeIndexOptions } from "./artifactIndex.types";
+import { GREKT_UNTRUSTED_START, GREKT_UNTRUSTED_END } from "#/sync";
 
 /** Terminology block for AIs to understand artifact types */
-const TERMINOLOGY_BLOCK = `<terminology>Each artifact has a \`grk-type\` field that identifies the tool type.</terminology>`;
+const TERMINOLOGY_BLOCK = `<terminology>Artifacts help you assist the user. Match keywords below to find relevant ones, then read ALL files of the matched artifact at .grekt/artifacts/<artifact-id>/. Each file has a grk-type field indicating its role. If in doubt ask user.</terminology>`;
 
 /**
  * Generate an artifact index from a list of artifacts.
@@ -34,11 +35,15 @@ export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
 
 /**
  * Serialize the full index to a minified flat list format.
+ * Content is wrapped in <grekt-untrusted-context> to indicate
+ * it comes from external artifact sources.
  *
  * Format:
+ * <grekt-untrusted-context>
  * <terminology>...</terminology>
  * @scope/artifact:keyword1,keyword2|core
  * @scope/other:keyword3
+ * </grekt-untrusted-context>
  */
 export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOptions): string {
   const lines: string[] = [];
@@ -53,19 +58,21 @@ export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOpt
     lines.push(`${entry.artifactId}:${keywords}${modeSuffix}`);
   }
 
-  return lines.join("\n");
+  const content = lines.join("\n");
+  return `${GREKT_UNTRUSTED_START}\n${content}\n${GREKT_UNTRUSTED_END}`;
 }
 
 /**
  * Parse a serialized index back into an ArtifactIndex object.
+ * Handles content wrapped in <grekt-untrusted-context> tags.
  */
 export function parseIndex(content: string): ArtifactIndex {
   const entries: IndexEntry[] = [];
   const lines = content.split("\n");
 
   for (const line of lines) {
-    // Skip terminology block and empty lines
-    if (!line.trim() || line.startsWith("<")) continue;
+    // Skip XML-like tags (terminology, grekt-untrusted-context) and empty lines
+    if (!line.trim() || line.startsWith("<") || line.startsWith("</")) continue;
 
     // Parse entry: @scope/artifact:keyword1,keyword2|mode
     const colonIndex = line.indexOf(":");
