@@ -1,3 +1,29 @@
+# [4.0.0](https://github.com/grekt-labs/cli-engine/compare/v3.8.1...v4.0.0) (2026-01-31)
+
+
+* fix(security)!: prevent shell injection and tar path traversal ([546ef36](https://github.com/grekt-labs/cli-engine/commit/546ef3630c6e7990e96606bae91c3e0413c2d05d))
+
+
+### BREAKING CHANGES
+
+* ShellExecutor interface changed from exec(command) to
+execFile(command, args[]) to prevent shell injection attacks.
+
+Security fixes:
+- Shell injection: Use execFile with array args instead of exec with string
+- Path traversal: PRE-extract validation with tar -tf/-tvf before extraction
+- Symlink attacks: Detect and reject symlinks pointing outside target dir
+- Temp files: Use crypto.randomUUID() instead of Date.now()
+- BSD/GNU compat: Parse tar output compatible with both formats
+- strip-components: Apply same strip to validation as extraction
+
+Files changed:
+- interfaces.ts: ShellExecutor.exec -> execFile (breaking)
+- tar-utils.ts: New PRE-extract validation with symlink detection
+- download.ts, default.ts, gitlab.ts: Use new validation
+- mocks.ts: Update mock for new interface
+- registry.types.ts: Add tempTarballPath option
+
 ## [3.8.1](https://github.com/grekt-labs/cli-engine/compare/v3.8.0...v3.8.1) (2026-01-31)
 
 
