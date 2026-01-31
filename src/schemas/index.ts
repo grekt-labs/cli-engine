@@ -117,11 +117,11 @@ export function hasManifestFields(config: ProjectConfig): config is ProjectConfi
 // S3 credentials for publishing to S3-compatible storage
 export const S3CredentialsSchema = z.object({
   type: z.literal("s3"),
-  endpoint: z.string(),
+  endpoint: z.string().url(),
   accessKeyId: z.string(),
   secretAccessKey: z.string(),
   bucket: z.string(),
-  publicUrl: z.string().optional(),
+  publicUrl: z.string().url().optional(),
 });
 export type S3Credentials = z.infer<typeof S3CredentialsSchema>;
 
