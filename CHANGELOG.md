@@ -1,3 +1,10 @@
+# [4.3.0](https://github.com/grekt-labs/cli-engine/compare/v4.2.0...v4.3.0) (2026-01-31)
+
+
+### Features
+
+* **index:** flatten artifact index format ([#28](https://github.com/grekt-labs/cli-engine/issues/28)) ([16b7a38](https://github.com/grekt-labs/cli-engine/commit/16b7a38e1100db022da2c1e61a906a7b9779b7d0))
+
 # [4.2.0](https://github.com/grekt-labs/cli-engine/compare/v4.1.0...v4.2.0) (2026-01-31)
 
 
