@@ -232,17 +232,17 @@ export type LocalConfig = z.infer<typeof LocalConfigSchema>;
 export const ComponentTypeSchema = z.enum(CATEGORIES);
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 
-// Index entry for a single component
+// Index entry for a single artifact (flat list, no categories)
 export const IndexEntrySchema = z.object({
   artifactId: z.string(), // @scope/name
   keywords: KeywordsSchema,
   mode: ArtifactModeSchema, // core or lazy
-  path: z.string(), // relative path within artifact
 });
 export type IndexEntry = z.infer<typeof IndexEntrySchema>;
 
-// Full artifact index structure - generated from CATEGORIES
-const indexBaseSchema = z.object({ version: z.literal(1) });
-const indexCategorySchema = createCategoryRecord(z.array(IndexEntrySchema).default([]));
-export const ArtifactIndexSchema = indexBaseSchema.merge(indexCategorySchema);
+// Flat artifact index structure
+export const ArtifactIndexSchema = z.object({
+  version: z.literal(1),
+  entries: z.array(IndexEntrySchema).default([]),
+});
 export type ArtifactIndex = z.infer<typeof ArtifactIndexSchema>;
