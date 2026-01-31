@@ -1,3 +1,10 @@
+# [4.2.0](https://github.com/grekt-labs/cli-engine/compare/v4.1.0...v4.2.0) (2026-01-31)
+
+
+### Features
+
+* **sync:** add getTargetPath hook to FolderPluginConfig ([#27](https://github.com/grekt-labs/cli-engine/issues/27)) ([64342b1](https://github.com/grekt-labs/cli-engine/commit/64342b12d2f315810066d08508edf736d6f65fda))
+
 # [4.1.0](https://github.com/grekt-labs/cli-engine/compare/v4.0.0...v4.1.0) (2026-01-31)
 
 
