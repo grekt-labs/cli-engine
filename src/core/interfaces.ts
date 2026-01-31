@@ -22,8 +22,18 @@ export interface HttpClient {
   fetch(url: string, options?: RequestInit): Promise<Response>;
 }
 
+/**
+ * Shell command executor using array-based arguments.
+ *
+ * BREAKING CHANGE (security): Changed from exec(command: string) to execFile(command, args[]).
+ * This prevents shell injection attacks by passing arguments directly to the executable
+ * without shell interpretation. Callers must update to pass command and args separately.
+ *
+ * Before: shell.exec("tar -xzf file.tar.gz")
+ * After:  shell.execFile("tar", ["-xzf", "file.tar.gz"])
+ */
 export interface ShellExecutor {
-  exec(command: string): string;
+  execFile(command: string, args: string[]): string;
 }
 
 export interface TokenProvider {

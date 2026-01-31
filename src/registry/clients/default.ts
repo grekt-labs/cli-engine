@@ -5,7 +5,7 @@
  * Uses simple HTTP fetches to download artifacts and metadata.
  */
 
-import type { FileSystem, HttpClient, ShellExecutor } from "#/core";
+import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
 import type { ArtifactMetadata } from "#/schemas";
 import type {
   RegistryClient,
@@ -85,11 +85,25 @@ export class DefaultRegistryClient implements RegistryClient {
       }
 
       const buffer = await response.arrayBuffer();
-      const tempTarball = `/tmp/grekt-${Date.now()}.tar.gz`;
+      const tempTarball = generateSecureTempPath();
       this.fs.writeFileBinary(tempTarball, Buffer.from(buffer));
 
+      // Validate tarball contents BEFORE extraction (prevents path traversal)
+      // stripComponents=1 matches the extraction below
+      const validation = validateTarballContents(this.shell, tempTarball, targetDir, 1);
+      if (!validation.safe) {
+        this.fs.unlink(tempTarball);
+        return {
+          success: false,
+          error: `Unsafe tarball: ${validation.violations.join(", ")}`,
+        };
+      }
+
       this.fs.mkdir(targetDir, { recursive: true });
-      this.shell.exec(`tar -xzf ${tempTarball} -C ${targetDir} --strip-components=1`);
+
+      // Use array-based args to prevent shell injection
+      const tarArgs = ["-xzf", tempTarball, "-C", targetDir, "--strip-components=1"];
+      this.shell.execFile("tar", tarArgs);
 
       // Clean up temp file
       if (this.fs.exists(tempTarball)) {
@@ -180,5 +194,14 @@ export class DefaultRegistryClient implements RegistryClient {
       updatedAt: metadata.updatedAt,
     };
   }
+}
+
+/**
+ * Generate a secure temporary file path using crypto.randomUUID.
+ */
+function generateSecureTempPath(): string {
+  const crypto = require("crypto");
+  const uuid = crypto.randomUUID();
+  return `/tmp/grekt-${uuid}.tar.gz`;
 }
 

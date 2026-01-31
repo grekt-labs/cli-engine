@@ -5,7 +5,7 @@
  * Tarball extraction uses injected dependencies.
  */
 
-import type { FileSystem, HttpClient, ShellExecutor } from "#/core";
+import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
 import type { DownloadOptions, TarballDownloadResult } from "./registry.types";
 
 /**
@@ -77,7 +77,7 @@ export async function downloadAndExtractTarball(
   targetDir: string,
   options: DownloadOptions = {}
 ): Promise<TarballDownloadResult> {
-  const { headers = {}, stripComponents = 1 } = options;
+  const { headers = {}, stripComponents = 1, tempTarballPath } = options;
 
   // Ensure User-Agent is always set
   const finalHeaders: Record<string, string> = {
@@ -85,7 +85,9 @@ export async function downloadAndExtractTarball(
     ...headers,
   };
 
-  const tempTarball = `/tmp/grekt-${Date.now()}.tar.gz`;
+  // Caller should provide a secure temp path with random component.
+  // Fallback uses crypto.randomUUID if available, or throws.
+  const tempTarball = tempTarballPath ?? generateSecureTempPath();
 
   try {
     const response = await http.fetch(url, {
@@ -103,12 +105,28 @@ export async function downloadAndExtractTarball(
     const buffer = await response.arrayBuffer();
     fs.writeFileBinary(tempTarball, Buffer.from(buffer));
 
+    // Validate tarball contents BEFORE extraction (prevents path traversal)
+    // Pass stripComponents so validation matches what extraction will do
+    const validation = validateTarballContents(shell, tempTarball, targetDir, stripComponents);
+    if (!validation.safe) {
+      if (fs.exists(tempTarball)) {
+        fs.unlink(tempTarball);
+      }
+      return {
+        success: false,
+        error: `Unsafe tarball: ${validation.violations.join(", ")}`,
+      };
+    }
+
     // Ensure target directory exists
     fs.mkdir(targetDir, { recursive: true });
 
-    // Extract tarball
-    const stripArg = stripComponents > 0 ? `--strip-components=${stripComponents}` : "";
-    shell.exec(`tar -xzf ${tempTarball} -C ${targetDir} ${stripArg}`);
+    // Extract tarball using array-based args to prevent shell injection
+    const tarArgs = ["-xzf", tempTarball, "-C", targetDir];
+    if (stripComponents > 0) {
+      tarArgs.push(`--strip-components=${stripComponents}`);
+    }
+    shell.execFile("tar", tarArgs);
 
     return { success: true };
   } catch (err) {
@@ -122,4 +140,14 @@ export async function downloadAndExtractTarball(
       fs.unlink(tempTarball);
     }
   }
+}
+
+/**
+ * Generate a secure temporary file path using crypto.randomUUID.
+ * Used as fallback when caller doesn't provide tempTarballPath.
+ */
+function generateSecureTempPath(): string {
+  const crypto = require("crypto");
+  const uuid = crypto.randomUUID();
+  return `/tmp/grekt-${uuid}.tar.gz`;
 }

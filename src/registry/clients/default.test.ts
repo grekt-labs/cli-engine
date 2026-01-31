@@ -23,7 +23,7 @@ describe("DefaultRegistryClient", () => {
     };
     const http = createMockHttpClient(httpResponses);
     const fs = createMockFileSystem();
-    const shell = createMockShellExecutor({ "tar -xzf": "" });
+    const shell = createMockShellExecutor({ "tar": "" });
 
     return { client: new DefaultRegistryClient(registry, http, fs, shell), http, fs, shell };
   };
