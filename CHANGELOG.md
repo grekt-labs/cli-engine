@@ -1,3 +1,10 @@
+## [4.3.1](https://github.com/grekt-labs/cli-engine/compare/v4.3.0...v4.3.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* trigger release ([3fd95e0](https://github.com/grekt-labs/cli-engine/commit/3fd95e00c394c7667ace44738ee7d179b88b46b5))
+
 # [4.3.0](https://github.com/grekt-labs/cli-engine/compare/v4.2.0...v4.3.0) (2026-01-31)
 
 
