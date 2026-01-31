@@ -112,16 +112,17 @@ describe("download", () => {
       );
       const fs = createMockFileSystem();
       const shell = createMockShellExecutor({
-        "tar -xzf": "",
+        "tar": "",
       });
 
       const result = await downloadAndExtractTarball(http, fs, shell, url, targetDir);
 
       expect(result.success).toBe(true);
       expect(result.error).toBeUndefined();
-      expect(shell.commands.length).toBe(1);
-      expect(shell.commands[0]).toContain("tar -xzf");
-      expect(shell.commands[0]).toContain(targetDir);
+      const extractCall = shell.calls.find((call) => call.args.includes("-xzf"));
+      expect(extractCall).toBeDefined();
+      expect(extractCall?.command).toBe("tar");
+      expect(extractCall?.args).toContain(targetDir);
     });
 
     test("returns error on HTTP failure", async () => {
@@ -165,7 +166,7 @@ describe("download", () => {
       );
       const fs = createMockFileSystem();
       const shell = createMockShellExecutor({
-        "tar -xzf": "",
+        "tar": "",
       });
 
       await downloadAndExtractTarball(http, fs, shell, url, "/target");
@@ -193,7 +194,7 @@ describe("download", () => {
         },
       };
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar -xzf": "" });
+      const shell = createMockShellExecutor({ "tar": "" });
 
       await downloadAndExtractTarball(http, fs, shell, url, "/target", {
         headers: { Authorization: "Bearer token" },
@@ -211,13 +212,15 @@ describe("download", () => {
         new Map([[url, binaryResponse(tarballData)]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar -xzf": "" });
+      const shell = createMockShellExecutor({ "tar": "" });
 
       await downloadAndExtractTarball(http, fs, shell, url, "/target", {
         stripComponents: 2,
       });
 
-      expect(shell.commands[0]).toContain("--strip-components=2");
+      const extractCall = shell.calls.find((call) => call.args.includes("-xzf"));
+      expect(extractCall).toBeDefined();
+      expect(extractCall?.args).toContain("--strip-components=2");
     });
 
     test("uses no strip-components when set to 0", async () => {
@@ -228,13 +231,15 @@ describe("download", () => {
         new Map([[url, binaryResponse(tarballData)]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar -xzf": "" });
+      const shell = createMockShellExecutor({ "tar": "" });
 
       await downloadAndExtractTarball(http, fs, shell, url, "/target", {
         stripComponents: 0,
       });
 
-      expect(shell.commands[0]).not.toContain("--strip-components");
+      const extractCall = shell.calls.find((call) => call.args.includes("-xzf"));
+      expect(extractCall).toBeDefined();
+      expect(extractCall?.args.join(" ")).not.toContain("--strip-components");
     });
   });
 });

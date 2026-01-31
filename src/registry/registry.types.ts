@@ -147,6 +147,8 @@ export interface Publisher {
 export interface DownloadOptions {
   headers?: Record<string, string>;
   stripComponents?: number;
+  /** Temporary file path for tarball. Caller should generate a secure random path. */
+  tempTarballPath?: string;
 }
 
 /**

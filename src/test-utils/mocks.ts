@@ -167,22 +167,36 @@ export function createMockHttpClient(
 }
 
 /**
- * Create a mock ShellExecutor with predefined command outputs
+ * Recorded shell execution call
+ */
+interface ShellCall {
+  command: string;
+  args: string[];
+}
+
+/**
+ * Create a mock ShellExecutor with predefined command outputs.
+ * Matching is done against the command name, not the full command string.
  */
 export function createMockShellExecutor(
   results: Record<string, string | Error> = {}
-): ShellExecutor & { commands: string[] } {
+): ShellExecutor & { calls: ShellCall[]; commands: string[] } {
+  const calls: ShellCall[] = [];
+  // Keep commands array for backwards compatibility in tests
   const commands: string[] = [];
 
   return {
+    calls,
     commands,
 
-    exec(command: string): string {
-      commands.push(command);
+    execFile(command: string, args: string[]): string {
+      calls.push({ command, args });
+      // Store full command string for backwards compat
+      commands.push(`${command} ${args.join(" ")}`);
 
-      // Find matching command (supports prefix matching for dynamic commands)
+      // Find matching command by name
       for (const [pattern, result] of Object.entries(results)) {
-        if (command === pattern || command.startsWith(pattern)) {
+        if (command === pattern) {
           if (result instanceof Error) {
             throw result;
           }

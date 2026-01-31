@@ -23,7 +23,7 @@ describe("GitLabRegistryClient", () => {
     };
     const http = createMockHttpClient(httpResponses);
     const fs = createMockFileSystem();
-    const shell = createMockShellExecutor({ "tar -xzf": "" });
+    const shell = createMockShellExecutor({ "tar": "" });
 
     return {
       client: new GitLabRegistryClient(fullRegistry, http, fs, shell),
@@ -157,7 +157,7 @@ describe("GitLabRegistryClient", () => {
       };
 
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar -xzf": "" });
+      const shell = createMockShellExecutor({ "tar": "" });
 
       const registry: ResolvedRegistry = {
         type: "gitlab",
