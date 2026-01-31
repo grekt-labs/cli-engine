@@ -5,7 +5,6 @@ import {
   ArtifactFrontmatterSchema,
   CustomTargetSchema,
   ArtifactEntrySchema,
-  ProjectOptionsSchema,
   ProjectConfigSchema,
   S3CredentialsSchema,
   TokenCredentialsSchema,
@@ -212,20 +211,6 @@ describe("schemas", () => {
     });
   });
 
-  describe("ProjectOptionsSchema", () => {
-    test("applies defaults", () => {
-      const result = ProjectOptionsSchema.parse({});
-
-      expect(result.autoCheck).toBe(false);
-    });
-
-    test("accepts explicit values", () => {
-      const result = ProjectOptionsSchema.parse({ autoCheck: true });
-
-      expect(result.autoCheck).toBe(true);
-    });
-  });
-
   describe("ProjectConfigSchema", () => {
     test("applies all defaults for empty object", () => {
       const result = ProjectConfigSchema.parse({});
@@ -234,7 +219,6 @@ describe("schemas", () => {
       expect(result.autoSync).toBe(false);
       expect(result.artifacts).toEqual({});
       expect(result.customTargets).toEqual({});
-      expect(result.options.autoCheck).toBe(false);
     });
 
     test("parses full config", () => {
@@ -245,9 +229,6 @@ describe("schemas", () => {
         artifacts: {
           "@grekt/test": "1.0.0",
         },
-        options: {
-          autoCheck: true,
-        },
       };
 
       const result = ProjectConfigSchema.parse(config);
@@ -256,7 +237,6 @@ describe("schemas", () => {
       expect(result.autoSync).toBe(true);
       expect(result.registry).toBe("https://custom.registry.com");
       expect(result.artifacts["@grekt/test"]).toBe("1.0.0");
-      expect(result.options.autoCheck).toBe(true);
     });
 
     test("parses config with custom targets", () => {
@@ -411,9 +391,6 @@ describe("schemas", () => {
       expect(result.version).toBe("1.0.0");
       expect(result.integrity).toBe("sha256:abc123");
       expect(result.files).toEqual({});
-      expect(result.agents).toEqual([]);
-      expect(result.skills).toEqual([]);
-      expect(result.commands).toEqual([]);
     });
 
     test("parses full entry", () => {
@@ -426,9 +403,6 @@ describe("schemas", () => {
           "agents/main.md": "sha256:def456",
           "skills/testing.md": "sha256:ghi789",
         },
-        agents: ["agents/main.md"],
-        skills: ["skills/testing.md"],
-        commands: [],
       };
 
       const result = LockfileEntrySchema.parse(entry);
@@ -437,8 +411,6 @@ describe("schemas", () => {
         `https://${REGISTRY_HOST}/artifacts/test/1.0.0.tar.gz`
       );
       expect(result.files["agents/main.md"]).toBe("sha256:def456");
-      expect(result.agents).toContain("agents/main.md");
-      expect(result.skills).toContain("skills/testing.md");
     });
 
     test("rejects invalid semver version", () => {

@@ -77,9 +77,6 @@ describe("lockfile", () => {
               "agent.md": "sha256:file1hash",
               "skills/skill.md": "sha256:file2hash",
             },
-            agents: ["agents/main.md"],
-            skills: ["skills/skill.md"],
-            commands: [],
           },
         },
       };
@@ -93,8 +90,6 @@ describe("lockfile", () => {
       expect(result.artifacts["@scope/artifact"]).toBeDefined();
       expect(result.artifacts["@scope/artifact"].version).toBe("1.0.0");
       expect(result.artifacts["@scope/artifact"].integrity).toBe("sha256:abc123def456");
-      expect(result.artifacts["@scope/artifact"].agents).toContain("agents/main.md");
-      expect(result.artifacts["@scope/artifact"].skills).toContain("skills/skill.md");
     });
 
     test("parses lockfile with multiple artifacts", () => {
@@ -105,15 +100,11 @@ describe("lockfile", () => {
             version: "1.0.0",
             integrity: "sha256:hash1",
             files: {},
-            skills: [],
-            commands: [],
           },
           "@org/artifact2": {
             version: "2.0.0",
             integrity: "sha256:hash2",
             files: {},
-            skills: [],
-            commands: [],
           },
         },
       };
@@ -146,9 +137,6 @@ describe("lockfile", () => {
       const result = getLockfile(fs, "/project/grekt.lock");
 
       expect(result.artifacts["@scope/minimal"].files).toEqual({});
-      expect(result.artifacts["@scope/minimal"].agents).toEqual([]);
-      expect(result.artifacts["@scope/minimal"].skills).toEqual([]);
-      expect(result.artifacts["@scope/minimal"].commands).toEqual([]);
     });
   });
 
@@ -230,9 +218,6 @@ describe("lockfile", () => {
               "skills/s1.md": "sha256:skill1",
               "commands/c1.md": "sha256:cmd1",
             },
-            agents: ["agents/main.md"],
-            skills: ["skills/s1.md"],
-            commands: ["commands/c1.md"],
           },
         },
       };
@@ -246,9 +231,6 @@ describe("lockfile", () => {
       expect(artifact.source).toBe("github:owner/repo");
       expect(artifact.resolved).toBe("https://api.github.com/repos/owner/repo/tarball/v3.0.0");
       expect(artifact.files["agent.md"]).toBe("sha256:agentfile");
-      expect(artifact.agents).toContain("agents/main.md");
-      expect(artifact.skills).toContain("skills/s1.md");
-      expect(artifact.commands).toContain("commands/c1.md");
     });
   });
 });

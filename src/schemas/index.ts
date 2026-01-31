@@ -74,14 +74,8 @@ export const ArtifactEntrySchema = z.union([
 ]);
 export type ArtifactEntry = z.infer<typeof ArtifactEntrySchema>;
 
-// Project options (optional settings in grekt.yaml)
-export const ProjectOptionsSchema = z.object({
-  autoCheck: z.boolean().default(false),
-});
-export type ProjectOptions = z.infer<typeof ProjectOptionsSchema>;
-
 // Project config (grekt.yaml) - unified schema for both projects and artifacts
-// Projects use: targets, artifacts, customTargets, options
+// Projects use: targets, artifacts, customTargets
 // Artifacts use: name, author, version, description, keywords (+ optionally project fields if they depend on other artifacts)
 export const ProjectConfigSchema = z.object({
   // Manifest fields (for publishing artifacts)
@@ -97,7 +91,6 @@ export const ProjectConfigSchema = z.object({
   registry: z.string().optional(),
   artifacts: z.record(z.string(), ArtifactEntrySchema).default({}),
   customTargets: z.record(z.string(), CustomTargetSchema).default({}),
-  options: ProjectOptionsSchema.default({}),
 });
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 
@@ -158,7 +151,7 @@ export const CredentialsSchema = z.record(
 export type Credentials = z.infer<typeof CredentialsSchema>;
 
 // Lockfile entry (grekt.lock) - pinned versions, integrity hashes, and resolved URLs for reproducible installs
-const lockfileBaseSchema = z.object({
+export const LockfileEntrySchema = z.object({
   version: SemverSchema,
   integrity: z.string(), // SHA256 hash of entire artifact
   source: z.string().optional(),
@@ -166,9 +159,6 @@ const lockfileBaseSchema = z.object({
   mode: ArtifactModeSchema.default("lazy"), // core = copied to target, lazy = only in index
   files: z.record(z.string(), z.string()).default({}), // per-file hashes: { "agent.md": "sha256:abc..." }
 });
-// Component paths (where to find components in the artifact) - generated from CATEGORIES
-const lockfileCategorySchema = createCategoryRecord(z.array(z.string()).default([]));
-export const LockfileEntrySchema = lockfileBaseSchema.merge(lockfileCategorySchema);
 
 export const LockfileSchema = z.object({
   version: z.literal(1),
