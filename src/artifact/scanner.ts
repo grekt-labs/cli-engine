@@ -2,7 +2,7 @@ import { join, relative } from "path";
 import { parse } from "yaml";
 import type { FileSystem } from "#/core";
 import { ArtifactManifestSchema, type ArtifactManifest, type ArtifactFrontmatter } from "#/schemas";
-import { CATEGORIES, type Category, getCategoriesForFormat, createCategoryRecord } from "#/categories";
+import { type Category, getCategoriesForFormat, createCategoryRecord, isValidCategory } from "#/categories";
 import { parseFrontmatter } from "./frontmatter";
 import type {
   InvalidFileReason,
@@ -83,13 +83,16 @@ function parseJsonComponent(content: string): JsonParseResult {
     return { success: false, reason, missingFields };
   }
 
-  const category = data["grk-type"] as Category;
-  if (!JSON_CATEGORIES.includes(category)) {
+  const rawType = data["grk-type"];
+  if (typeof rawType !== "string" || !isValidCategory(rawType)) {
+    return { success: false, reason: "missing-type" };
+  }
+  if (!JSON_CATEGORIES.includes(rawType)) {
     return { success: false, reason: "invalid-type-for-format" };
   }
 
   const frontmatter: ArtifactFrontmatter = {
-    "grk-type": category,
+    "grk-type": rawType,
     "grk-name": data["grk-name"] as string,
     "grk-description": data["grk-description"] as string,
   };
@@ -127,7 +130,7 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
     }
 
     const { parsed } = result;
-    const category = parsed.frontmatter["grk-type"] as Category;
+    const category = parsed.frontmatter["grk-type"];
 
     if (MD_CATEGORIES.includes(category)) {
       info[category].push({ path: relativePath, parsed });
@@ -149,7 +152,7 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
     }
 
     const { parsed } = result;
-    const category = parsed.frontmatter["grk-type"] as Category;
+    const category = parsed.frontmatter["grk-type"];
 
     if (JSON_CATEGORIES.includes(category)) {
       info[category].push({ path: relativePath, parsed });
