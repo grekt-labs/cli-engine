@@ -53,6 +53,7 @@ export interface FolderPluginConfig {
   contextEntryPoint?: string;
   paths?: Partial<ComponentPaths>;
   generateRulesContent?: (lockfile: Lockfile) => string;
+  getTargetPath?: (artifactId: string, category: string, filePath: string) => string | null;
 }
 
 /** Configuration for rules-only plugins */
