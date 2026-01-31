@@ -4,7 +4,7 @@ import type { FileSystem } from "#/core";
 
 function hashContent(content: string): string {
   const hash = createHash("sha256").update(content).digest("hex");
-  return `sha256:${hash.slice(0, 16)}`; // First 16 hex chars for readability
+  return `sha256:${hash.slice(0, 32)}`;
 }
 
 /**
@@ -42,7 +42,7 @@ export function calculateIntegrity(fileHashes: Record<string, string>): string {
   const sortedKeys = Object.keys(fileHashes).sort();
   const combined = sortedKeys.map((k) => `${k}:${fileHashes[k]}`).join("\n");
   const hash = createHash("sha256").update(combined).digest("hex");
-  return `sha256:${hash.slice(0, 16)}`;
+  return `sha256:${hash.slice(0, 32)}`;
 }
 
 export interface IntegrityResult {
