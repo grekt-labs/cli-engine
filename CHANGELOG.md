@@ -1,3 +1,14 @@
+## [3.8.1](https://github.com/grekt-labs/cli-engine/compare/v3.8.0...v3.8.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* centralize keyword schemas with validation ([66e3a0c](https://github.com/grekt-labs/cli-engine/commit/66e3a0c5c5ec25a66b0bb05991ceef3f74d68ee2))
+* increase hash length from 16 to 32 chars ([3ce6bfd](https://github.com/grekt-labs/cli-engine/commit/3ce6bfd8c581c4e4d9c0fb93bd3be3fc26106314))
+* strict artifact ID regex (lowercase, numbers, hyphens) ([c9293bc](https://github.com/grekt-labs/cli-engine/commit/c9293bc5bc540c5da3e63093c94ca40e2e56989b))
+* use type guard instead of unsafe casts ([ba08b83](https://github.com/grekt-labs/cli-engine/commit/ba08b83a13aa6b7dd30fa4b50b34285bde27e6db))
+* validate S3 endpoint and publicUrl as URLs ([b2e827b](https://github.com/grekt-labs/cli-engine/commit/b2e827beb721f73ec4c2f39ffc25bdfe5112eb71))
+
 # [3.8.0](https://github.com/grekt-labs/cli-engine/compare/v3.7.1...v3.8.0) (2026-01-30)
 
 
