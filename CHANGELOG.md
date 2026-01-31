@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/grekt-labs/cli-engine/compare/v4.0.0...v4.1.0) (2026-01-31)
+
+
+### Features
+
+* add detailed error messages for frontmatter validation ([8881015](https://github.com/grekt-labs/cli-engine/commit/88810153855aaf509e86b620ce4a32db8da32007))
+
 # [4.0.0](https://github.com/grekt-labs/cli-engine/compare/v3.8.1...v4.0.0) (2026-01-31)
 
 
