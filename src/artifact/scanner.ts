@@ -2,7 +2,7 @@ import { join, relative } from "path";
 import { parse } from "yaml";
 import type { FileSystem } from "#/core";
 import { ArtifactManifestSchema, type ArtifactManifest, type ArtifactFrontmatter } from "#/schemas";
-import { type Category, getCategoriesForFormat, createCategoryRecord, isValidCategory } from "#/categories";
+import { type Category, CATEGORIES, getCategoriesForFormat, createCategoryRecord, isValidCategory } from "#/categories";
 import { parseFrontmatter } from "./frontmatter";
 import type {
   InvalidFileReason,
@@ -57,7 +57,7 @@ function findFiles(fs: FileSystem, dir: string): FoundFiles {
 
 type JsonParseResult =
   | { success: true; parsed: ParsedComponent }
-  | { success: false; reason: InvalidFileReason; missingFields?: string[] };
+  | { success: false; reason: InvalidFileReason; missingFields?: string[]; details?: string };
 
 function getReasonFromMissingFields(missingFields: string[]): InvalidFileReason {
   if (missingFields.includes("grk-type")) return "missing-type";
@@ -85,10 +85,12 @@ function parseJsonComponent(content: string): JsonParseResult {
 
   const rawType = data["grk-type"];
   if (typeof rawType !== "string" || !isValidCategory(rawType)) {
-    return { success: false, reason: "missing-type" };
+    const details = `grk-type: got '${rawType}', expected one of: ${CATEGORIES.join(", ")}`;
+    return { success: false, reason: "missing-type", details };
   }
   if (!JSON_CATEGORIES.includes(rawType)) {
-    return { success: false, reason: "invalid-type-for-format" };
+    const details = `grk-type '${rawType}' is not valid for JSON files, expected: ${JSON_CATEGORIES.join(", ")}`;
+    return { success: false, reason: "invalid-type-for-format", details };
   }
 
   const frontmatter: ArtifactFrontmatter = {
@@ -125,6 +127,7 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
         path: relativePath,
         reason: result.reason,
         missingFields: result.missingFields,
+        details: result.details,
       });
       continue;
     }
@@ -147,6 +150,7 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
         path: relativePath,
         reason: result.reason,
         missingFields: result.missingFields,
+        details: result.details,
       });
       continue;
     }

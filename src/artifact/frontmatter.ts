@@ -4,7 +4,7 @@ import type { InvalidFileReason, ParsedArtifact } from "./scanner.types";
 
 export type FrontmatterParseResult =
   | { success: true; parsed: ParsedArtifact }
-  | { success: false; reason: InvalidFileReason; missingFields?: string[] };
+  | { success: false; reason: InvalidFileReason; missingFields?: string[]; details?: string };
 
 function getReasonFromMissingFields(missingFields: string[]): InvalidFileReason {
   if (missingFields.includes("grk-type")) return "missing-type";
@@ -40,7 +40,18 @@ export function parseFrontmatter(content: string): FrontmatterParseResult {
 
   const schemaResult = ArtifactFrontmatterSchema.safeParse(data);
   if (!schemaResult.success) {
-    return { success: false, reason: "invalid-frontmatter" };
+    // Extract detailed error message from Zod
+    const details = schemaResult.error.issues
+      .map((issue) => {
+        const path = issue.path.join(".");
+        const received = data[issue.path[0] as string];
+        if (issue.code === "invalid_enum_value") {
+          return `${path}: got '${received}', expected one of: ${(issue as { options: string[] }).options.join(", ")}`;
+        }
+        return `${path}: ${issue.message}`;
+      })
+      .join("; ");
+    return { success: false, reason: "invalid-frontmatter", details };
   }
 
   return { success: true, parsed: { frontmatter: schemaResult.data, content: body } };
