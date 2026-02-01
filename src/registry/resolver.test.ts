@@ -10,7 +10,7 @@ import type { LocalConfig } from "./registry.types";
 
 const DEFAULT_HOST = "registry.grekt.com";
 const GITLAB_HOST = "gitlab.com";
-const GITHUB_HOST = "github.com";
+const GITHUB_HOST = "ghcr.io"; // GitHub Container Registry for OCI artifacts
 
 describe("parseArtifactId", () => {
   test("parses @scope/name", () => {
