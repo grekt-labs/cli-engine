@@ -1,3 +1,10 @@
+# [4.7.0](https://github.com/grekt-labs/cli-engine/compare/v4.6.0...v4.7.0) (2026-02-01)
+
+
+### Features
+
+* optimize index terminology for efficient file loading ([#34](https://github.com/grekt-labs/cli-engine/issues/34)) ([6934e31](https://github.com/grekt-labs/cli-engine/commit/6934e3192651ce41383a3d2d64b1a737195c7a0e))
+
 # [4.6.0](https://github.com/grekt-labs/cli-engine/compare/v4.5.1...v4.6.0) (2026-02-01)
 
 
