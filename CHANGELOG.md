@@ -1,3 +1,10 @@
+# [4.6.0](https://github.com/grekt-labs/cli-engine/compare/v4.5.1...v4.6.0) (2026-02-01)
+
+
+### Features
+
+* add auto-generated components schema and generator ([bdbef16](https://github.com/grekt-labs/cli-engine/commit/bdbef16d5d9c10d2abf8caad1a4cf15a5b698142))
+
 ## [4.5.1](https://github.com/grekt-labs/cli-engine/compare/v4.5.0...v4.5.1) (2026-02-01)
 
 
