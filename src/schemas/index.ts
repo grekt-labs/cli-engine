@@ -22,6 +22,23 @@ export const KeywordSchema = z.string().trim().min(1);
 export const KeywordsSchema = z.array(KeywordSchema);
 export const KeywordsPublishSchema = KeywordsSchema.min(3).max(5);
 
+// Component summary for auto-generated components section
+// This is generated during publish/pack, not written by authors
+export const ComponentSummarySchema = z.object({
+  name: z.string(),
+  file: z.string(),
+  description: z.string(),
+});
+export type ComponentSummary = z.infer<typeof ComponentSummarySchema>;
+
+// Components section: category -> array of component summaries
+// Using partial record since not all categories may have components
+export const ComponentsSchema = z.record(
+  z.enum(CATEGORIES),
+  z.array(ComponentSummarySchema)
+).optional();
+export type Components = z.infer<typeof ComponentsSchema>;
+
 // Artifact manifest (grekt.yaml inside each published artifact)
 export const ArtifactManifestSchema = z.object({
   name: z.string(),
@@ -29,6 +46,7 @@ export const ArtifactManifestSchema = z.object({
   version: SemverSchema,
   description: z.string(),
   keywords: KeywordsSchema.optional(),
+  components: ComponentsSchema, // Auto-generated during publish/pack
 });
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
 

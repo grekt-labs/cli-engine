@@ -1,7 +1,13 @@
 import { join, relative } from "path";
 import { parse } from "yaml";
 import type { FileSystem } from "#/core";
-import { ArtifactManifestSchema, type ArtifactManifest, type ArtifactFrontmatter } from "#/schemas";
+import {
+  ArtifactManifestSchema,
+  type ArtifactManifest,
+  type ArtifactFrontmatter,
+  type Components,
+  type ComponentSummary,
+} from "#/schemas";
 import { type Category, CATEGORIES, getCategoriesForFormat, createCategoryRecord, isValidCategory } from "#/categories";
 import { parseFrontmatter } from "./frontmatter";
 import type {
@@ -164,6 +170,32 @@ export function scanArtifact(fs: FileSystem, artifactDir: string): ArtifactInfo 
   }
 
   return info;
+}
+
+/**
+ * Generate components summary from scanned artifact info.
+ * This is used during publish/pack to auto-generate the components section.
+ */
+export function generateComponents(info: ArtifactInfo): Components {
+  const components: Record<Category, ComponentSummary[]> = {} as Record<Category, ComponentSummary[]>;
+
+  for (const category of CATEGORIES) {
+    const files = info[category];
+    if (files.length > 0) {
+      components[category] = files.map((file) => ({
+        name: file.parsed.frontmatter["grk-name"],
+        file: file.path,
+        description: file.parsed.frontmatter["grk-description"],
+      }));
+    }
+  }
+
+  // Return undefined if no components (cleaner yaml output)
+  if (Object.keys(components).length === 0) {
+    return undefined;
+  }
+
+  return components;
 }
 
 export type {
