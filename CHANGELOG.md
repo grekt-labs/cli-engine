@@ -1,3 +1,10 @@
+## [4.8.1](https://github.com/grekt-labs/cli-engine/compare/v4.8.0...v4.8.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* derive GitHub registry namespace from scope automatically ([#36](https://github.com/grekt-labs/cli-engine/issues/36)) ([ead69fc](https://github.com/grekt-labs/cli-engine/commit/ead69fcc0c79c50e375d3a7cb4f7c5f4fe26c879))
+
 # [4.8.0](https://github.com/grekt-labs/cli-engine/compare/v4.7.0...v4.8.0) (2026-02-01)
 
 
