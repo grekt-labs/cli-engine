@@ -32,5 +32,8 @@ export * from '#/artifactIndex';
 // Version utilities (semver validation, comparison)
 export * from '#/version';
 
+// OCI Distribution Spec (GHCR support)
+export * from '#/oci';
+
 // TODO: Export modules as they are migrated
 // export * from '#/operations';

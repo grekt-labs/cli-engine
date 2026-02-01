@@ -9,6 +9,7 @@ import type { FileSystem, HttpClient, ShellExecutor } from "#/core";
 import type { ResolvedRegistry, RegistryClient } from "./registry.types";
 import { DefaultRegistryClient } from "./clients/default";
 import { GitLabRegistryClient } from "./clients/gitlab";
+import { GitHubRegistryClient } from "./clients/github";
 
 /**
  * Create a registry client for the resolved registry
@@ -22,8 +23,8 @@ export function createRegistryClient(
   switch (registry.type) {
     case "gitlab":
       return new GitLabRegistryClient(registry, http, fs, shell);
-    // case "github":
-    //   return new GitHubRegistryClient(registry, http, fs, shell); // Future
+    case "github":
+      return new GitHubRegistryClient(registry, http, fs, shell);
     case "default":
     default:
       return new DefaultRegistryClient(registry, http, fs, shell);

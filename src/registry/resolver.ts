@@ -56,7 +56,7 @@ export function getDefaultHost(type: RegistryType): string {
     case "gitlab":
       return "gitlab.com";
     case "github":
-      return "github.com";
+      return "ghcr.io"; // GitHub Container Registry for OCI artifacts
     case "default":
     default:
       return DEFAULT_REGISTRY_HOST;
