@@ -100,10 +100,15 @@ export function resolveRegistry(
     }
   }
 
+  // For GitHub registry, derive project from scope if not explicitly set
+  // @myorg → myorg (GHCR namespace)
+  const project = entry.project ??
+    (entry.type === "github" ? scope.replace(/^@/, "") : undefined);
+
   return {
     type: entry.type,
     host: entry.host || getDefaultHost(entry.type),
-    project: entry.project,
+    project,
     token,
   };
 }
