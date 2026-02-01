@@ -13,11 +13,9 @@ export const GREKT_UNTRUSTED_START = `<${GREKT_UNTRUSTED_TAG}>`;
 export const GREKT_UNTRUSTED_END = `</${GREKT_UNTRUSTED_TAG}>`;
 
 /** Section header to detect if grekt block exists in context entry point */
-export const GREKT_SECTION_HEADER = "## Grekt Artifacts (MANDATORY)";
+export const GREKT_SECTION_HEADER = "**MANDATORY:**";
 
 /** Content block for context entry points (CLAUDE.md, etc.) */
 export function generateDefaultBlockContent(): string {
-  return `${GREKT_SECTION_HEADER}
-
-**Always read \`.grekt/index\` at the start of a session.**`;
+  return `${GREKT_SECTION_HEADER} Read \`.grekt/index\` at session start to discover artifacts.`;
 }
