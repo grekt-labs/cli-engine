@@ -1,3 +1,15 @@
+# [4.5.0](https://github.com/grekt-labs/cli-engine/compare/v4.4.0...v4.5.0) (2026-02-01)
+
+
+### Bug Fixes
+
+* trigger failing release ([d32dca1](https://github.com/grekt-labs/cli-engine/commit/d32dca12dda8f3cf5f9242526019cac8d1eab3bc))
+
+
+### Features
+
+* **sync:** minify grekt blocks output ([#29](https://github.com/grekt-labs/cli-engine/issues/29)) ([382febe](https://github.com/grekt-labs/cli-engine/commit/382febe74e610fde21e7040b9f932f284746c2f8))
+
 # [4.4.0](https://github.com/grekt-labs/cli-engine/compare/v4.3.1...v4.4.0) (2026-02-01)
 
 
