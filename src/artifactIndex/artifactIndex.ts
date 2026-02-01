@@ -3,18 +3,22 @@ import { CATEGORIES } from "#/categories";
 import type { IndexGeneratorInput, SerializeIndexOptions } from "./artifactIndex.types";
 import { GREKT_UNTRUSTED_START, GREKT_UNTRUSTED_END } from "#/sync";
 
-/** Terminology block for AIs to understand artifact types */
-const TERMINOLOGY_BLOCK = `<terminology>Artifacts help you assist the user. Match keywords below to find relevant ones, then read ALL files of the matched artifact at .grekt/artifacts/<artifact-id>/. Each file has a grk-type field indicating its role. If in doubt ask user.</terminology>`;
+/** Terminology block for AIs to understand artifact types and grk-types */
+const TERMINOLOGY_BLOCK = `<terminology>Artifacts help you assist the user. Match keywords below to find relevant ones, then read ALL files of the matched artifact at .grekt/artifacts/<artifact-id>/. Each file has a grk-type field: agents (autonomous specialists for complex tasks), skills (reusable capabilities), commands (user-invoked actions). If in doubt ask user.</terminology>`;
 
 /**
  * Generate an artifact index from a list of artifacts.
  * Produces a flat list of entries, deduplicated by artifactId.
+ * Only LAZY artifacts are included - CORE artifacts live in the AI's context.
  */
 export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
   const seen = new Set<string>();
   const entries: IndexEntry[] = [];
 
   for (const artifact of artifacts) {
+    // Skip CORE artifacts - they live in the AI's context, not in the index
+    if (artifact.mode === "core") continue;
+
     // Check if artifact has any components
     const hasComponents = CATEGORIES.some(
       (category) => artifact.components[category].length > 0
@@ -37,11 +41,12 @@ export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
  * Serialize the full index to a minified flat list format.
  * Content is wrapped in <grekt-untrusted-context> to indicate
  * it comes from external artifact sources.
+ * Only LAZY artifacts appear here - CORE artifacts live in the AI's context.
  *
  * Format:
  * <grekt-untrusted-context>
  * <terminology>...</terminology>
- * @scope/artifact:keyword1,keyword2|core
+ * @scope/artifact:keyword1,keyword2
  * @scope/other:keyword3
  * </grekt-untrusted-context>
  */
@@ -54,8 +59,7 @@ export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOpt
 
   for (const entry of index.entries) {
     const keywords = entry.keywords.join(",");
-    const modeSuffix = entry.mode === "core" ? "|core" : "";
-    parts.push(`${entry.artifactId}:${keywords}${modeSuffix}`);
+    parts.push(`${entry.artifactId}:${keywords}`);
   }
 
   const content = parts.join("\n");
