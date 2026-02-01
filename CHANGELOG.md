@@ -1,3 +1,10 @@
+# [4.8.0](https://github.com/grekt-labs/cli-engine/compare/v4.7.0...v4.8.0) (2026-02-01)
+
+
+### Features
+
+* add GitHub Container Registry (GHCR) support via OCI ([#35](https://github.com/grekt-labs/cli-engine/issues/35)) ([5560ef5](https://github.com/grekt-labs/cli-engine/commit/5560ef54249e1728b334627678800e6835d0ca7b))
+
 # [4.7.0](https://github.com/grekt-labs/cli-engine/compare/v4.6.0...v4.7.0) (2026-02-01)
 
 
