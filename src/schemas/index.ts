@@ -87,7 +87,6 @@ export const ProjectConfigSchema = z.object({
 
   // Config fields (for consuming artifacts)
   targets: z.array(z.string()).default([]),
-  autoSync: z.boolean().default(false),
   registry: z.string().optional(),
   artifacts: z.record(z.string(), ArtifactEntrySchema).default({}),
   customTargets: z.record(z.string(), CustomTargetSchema).default({}),

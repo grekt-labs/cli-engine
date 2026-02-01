@@ -216,7 +216,6 @@ describe("schemas", () => {
       const result = ProjectConfigSchema.parse({});
 
       expect(result.targets).toEqual([]);
-      expect(result.autoSync).toBe(false);
       expect(result.artifacts).toEqual({});
       expect(result.customTargets).toEqual({});
     });
@@ -224,7 +223,6 @@ describe("schemas", () => {
     test("parses full config", () => {
       const config = {
         targets: ["claude", "cursor"],
-        autoSync: true,
         registry: "https://custom.registry.com",
         artifacts: {
           "@grekt/test": "1.0.0",
@@ -234,7 +232,6 @@ describe("schemas", () => {
       const result = ProjectConfigSchema.parse(config);
 
       expect(result.targets).toEqual(["claude", "cursor"]);
-      expect(result.autoSync).toBe(true);
       expect(result.registry).toBe("https://custom.registry.com");
       expect(result.artifacts["@grekt/test"]).toBe("1.0.0");
     });
