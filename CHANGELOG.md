@@ -1,3 +1,11 @@
+## [4.5.1](https://github.com/grekt-labs/cli-engine/compare/v4.5.0...v4.5.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* index only contains LAZY artifacts, add grk-types explanation ([#31](https://github.com/grekt-labs/cli-engine/issues/31)) ([ee7625c](https://github.com/grekt-labs/cli-engine/commit/ee7625cae7587fcff51f9d7879b8ab983bd4943e))
+* remove autoSync from ProjectConfig schema ([#30](https://github.com/grekt-labs/cli-engine/issues/30)) ([fb61519](https://github.com/grekt-labs/cli-engine/commit/fb615197c82910bc96d762b4d062b522599ca82d))
+
 # [4.5.0](https://github.com/grekt-labs/cli-engine/compare/v4.4.0...v4.5.0) (2026-02-01)
 
 
