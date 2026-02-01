@@ -1,3 +1,10 @@
+## [4.8.2](https://github.com/grekt-labs/cli-engine/compare/v4.8.1...v4.8.2) (2026-02-01)
+
+
+### Bug Fixes
+
+* require explicit project for GitHub registry ([#37](https://github.com/grekt-labs/cli-engine/issues/37)) ([dafc967](https://github.com/grekt-labs/cli-engine/commit/dafc967350be79ecdbcc39ee21fb81303107b4cd))
+
 ## [4.8.1](https://github.com/grekt-labs/cli-engine/compare/v4.8.0...v4.8.1) (2026-02-01)
 
 
