@@ -4,7 +4,7 @@ import type { IndexGeneratorInput, SerializeIndexOptions } from "./artifactIndex
 import { GREKT_UNTRUSTED_START, GREKT_UNTRUSTED_END } from "#/sync";
 
 /** Terminology block for AIs to understand artifact types and grk-types */
-const TERMINOLOGY_BLOCK = `<terminology>Artifacts help you assist the user. Match keywords below to find relevant ones, then read ALL files of the matched artifact at .grekt/artifacts/<artifact-id>/. Each file has a grk-type field: agents (autonomous specialists for complex tasks), skills (reusable capabilities), commands (user-invoked actions). If in doubt ask user.</terminology>`;
+const TERMINOLOGY_BLOCK = `<terminology>Artifacts help you assist the user. Match keywords below to find the relevant artifact, then: 1) Glob .grekt/artifacts/<artifact-id>/**/*.md to list available files. 2) If a filename clearly matches the user's need (e.g., publishing-flow.md for "how to publish"), read it directly. 3) If unclear which file to read, consult grekt.yaml for the component mapping. Each file has a grk-type field: agents (autonomous specialists), skills (reusable capabilities), commands (user-invoked actions).</terminology>`;
 
 /**
  * Generate an artifact index from a list of artifacts.
