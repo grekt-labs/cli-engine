@@ -46,20 +46,20 @@ export function generateIndex(artifacts: IndexGeneratorInput[]): ArtifactIndex {
  * </grekt-untrusted-context>
  */
 export function serializeIndex(index: ArtifactIndex, options?: SerializeIndexOptions): string {
-  const lines: string[] = [];
+  const parts: string[] = [];
 
   if (options?.includeTerminology) {
-    lines.push(TERMINOLOGY_BLOCK);
+    parts.push(TERMINOLOGY_BLOCK);
   }
 
   for (const entry of index.entries) {
     const keywords = entry.keywords.join(",");
     const modeSuffix = entry.mode === "core" ? "|core" : "";
-    lines.push(`${entry.artifactId}:${keywords}${modeSuffix}`);
+    parts.push(`${entry.artifactId}:${keywords}${modeSuffix}`);
   }
 
-  const content = lines.join("\n");
-  return `${GREKT_UNTRUSTED_START}\n${content}\n${GREKT_UNTRUSTED_END}`;
+  const content = parts.join("\n");
+  return `${GREKT_UNTRUSTED_START}${content}${GREKT_UNTRUSTED_END}`;
 }
 
 /**
