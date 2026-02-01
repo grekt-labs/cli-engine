@@ -40,32 +40,24 @@ export class GitHubRegistryClient implements RegistryClient {
     fs: FileSystem,
     shell: ShellExecutor
   ) {
+    if (!registry.project) {
+      throw new Error(
+        "GitHub registry requires 'project' field in config (your GHCR namespace, e.g., 'myorg' for ghcr.io/myorg/*)"
+      );
+    }
+
     this.host = registry.host || DEFAULT_GHCR_HOST;
     this.token = registry.token;
     this.http = http;
     this.fs = fs;
     this.shell = shell;
-
-    // Namespace: explicit project or derived from scope
-    // For @myorg scope with no project → namespace "myorg"
-    this.namespace = registry.project ?? "";
+    this.namespace = registry.project;
 
     // Initialize OCI client for pull operations
     this.ociClient = new OciClient(
       { host: this.host, token: this.token },
       http
     );
-  }
-
-  /**
-   * Set namespace from scope if not explicitly configured
-   * Called by the registry client factory after construction
-   */
-  setNamespaceFromScope(scope: string): void {
-    if (!this.namespace) {
-      // @myorg → myorg
-      this.namespace = scope.replace(/^@/, "");
-    }
   }
 
   /**
