@@ -29,7 +29,7 @@ describe("scanner", () => {
       const fs = createMockFileSystem({
         "/artifact/grekt.yaml": stringify({
           name: "test",
-          // Missing required fields: author, version, description
+          // Missing required fields: version, description
         }),
       });
 
@@ -40,8 +40,7 @@ describe("scanner", () => {
 
     test("parses valid manifest correctly", () => {
       const manifest = {
-        name: "test-artifact",
-        author: "test-author",
+        name: "@test-scope/test-artifact",
         version: "1.0.0",
         description: "Test description",
       };
@@ -52,16 +51,31 @@ describe("scanner", () => {
       const result = scanArtifact(fs, "/artifact");
 
       expect(result).not.toBeNull();
-      expect(result!.manifest.name).toBe("test-artifact");
-      expect(result!.manifest.author).toBe("test-author");
+      expect(result!.manifest.name).toBe("@test-scope/test-artifact");
       expect(result!.manifest.version).toBe("1.0.0");
       expect(result!.manifest.description).toBe("Test description");
     });
 
+    test("parses manifest with optional author", () => {
+      const manifest = {
+        name: "@scope/artifact",
+        author: "John Doe",
+        version: "1.0.0",
+        description: "Test",
+      };
+      const fs = createMockFileSystem({
+        "/artifact/grekt.yaml": stringify(manifest),
+      });
+
+      const result = scanArtifact(fs, "/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.manifest.author).toBe("John Doe");
+    });
+
     test("finds agent file", () => {
       const manifest = {
-        name: "test",
-        author: "author",
+        name: "@scope/test",
         version: "1.0.0",
         description: "desc",
       };
@@ -88,8 +102,7 @@ grk-description: An agent
 
     test("finds skills in nested directories", () => {
       const manifest = {
-        name: "test",
-        author: "author",
+        name: "@scope/test",
         version: "1.0.0",
         description: "desc",
       };
@@ -122,8 +135,7 @@ grk-description: Second skill
 
     test("finds commands", () => {
       const manifest = {
-        name: "test",
-        author: "author",
+        name: "@scope/test",
         version: "1.0.0",
         description: "desc",
       };
@@ -149,8 +161,7 @@ grk-description: A command
 
     test("handles invalid frontmatter gracefully and tracks invalid files", () => {
       const manifest = {
-        name: "test",
-        author: "author",
+        name: "@scope/test",
         version: "1.0.0",
         description: "desc",
       };
@@ -189,8 +200,7 @@ No frontmatter here`;
 
     test("returns empty arrays when no components found", () => {
       const manifest = {
-        name: "test",
-        author: "author",
+        name: "@scope/test",
         version: "1.0.0",
         description: "desc",
       };
@@ -212,8 +222,7 @@ No frontmatter here`;
 
     test("tracks missing fields in invalid files", () => {
       const manifest = {
-        name: "test",
-        author: "author",
+        name: "@scope/test",
         version: "1.0.0",
         description: "desc",
       };
@@ -252,8 +261,7 @@ grk-name: Has name
 
     test("handles complete artifact structure", () => {
       const manifest = {
-        name: "complete-artifact",
-        author: "grekt",
+        name: "@grekt/complete-artifact",
         version: "2.0.0",
         description: "A complete artifact",
       };
@@ -295,7 +303,7 @@ grk-description: A command
       const result = scanArtifact(fs, "/artifact");
 
       expect(result).not.toBeNull();
-      expect(result!.manifest.name).toBe("complete-artifact");
+      expect(result!.manifest.name).toBe("@grekt/complete-artifact");
       expect(result!.agents).toHaveLength(1);
       expect(result!.agents[0].parsed.frontmatter["grk-name"]).toBe("Main Agent");
       expect(result!.skills).toHaveLength(2);

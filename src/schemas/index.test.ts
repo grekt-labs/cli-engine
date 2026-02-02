@@ -36,20 +36,55 @@ describe("schemas", () => {
   });
 
   describe("ArtifactManifestSchema", () => {
-    test("parses valid manifest", () => {
+    test("parses scoped name manifest", () => {
       const manifest = {
-        name: "my-artifact",
-        author: "@grekt",
+        name: "@grekt/my-artifact",
         version: "1.0.0",
         description: "A test artifact",
       };
 
       const result = ArtifactManifestSchema.parse(manifest);
 
-      expect(result.name).toBe("my-artifact");
-      expect(result.author).toBe("@grekt");
+      expect(result.name).toBe("@grekt/my-artifact");
       expect(result.version).toBe("1.0.0");
       expect(result.description).toBe("A test artifact");
+    });
+
+    test("parses unscoped name manifest", () => {
+      const manifest = {
+        name: "my-local-tool",
+        version: "1.0.0",
+        description: "A local tool",
+      };
+
+      const result = ArtifactManifestSchema.parse(manifest);
+
+      expect(result.name).toBe("my-local-tool");
+    });
+
+    test("parses manifest with optional author", () => {
+      const manifest = {
+        name: "@grekt/my-artifact",
+        author: "John Doe",
+        version: "1.0.0",
+        description: "A test artifact",
+      };
+
+      const result = ArtifactManifestSchema.parse(manifest);
+
+      expect(result.author).toBe("John Doe");
+    });
+
+    test("author is optional", () => {
+      const manifest = {
+        name: "@grekt/my-artifact",
+        version: "1.0.0",
+        description: "A test artifact",
+      };
+
+      const result = ArtifactManifestSchema.parse(manifest);
+
+      expect(result.author).toBeUndefined();
     });
 
     test("rejects missing required fields", () => {
@@ -60,8 +95,7 @@ describe("schemas", () => {
 
     test("rejects invalid semver version", () => {
       const invalid = {
-        name: "my-artifact",
-        author: "@grekt",
+        name: "@grekt/my-artifact",
         version: "banana",
         description: "A test artifact",
       };
@@ -71,8 +105,7 @@ describe("schemas", () => {
 
     test("rejects v-prefixed version", () => {
       const invalid = {
-        name: "my-artifact",
-        author: "@grekt",
+        name: "@grekt/my-artifact",
         version: "v1.0.0",
         description: "A test artifact",
       };
