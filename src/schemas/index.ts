@@ -40,9 +40,11 @@ export const ComponentsSchema = z.record(
 export type Components = z.infer<typeof ComponentsSchema>;
 
 // Artifact manifest (grekt.yaml inside each published artifact)
+// name can be scoped (@scope/name) or unscoped (name)
+// Scoped names are required for publishing to registries
 export const ArtifactManifestSchema = z.object({
   name: z.string(),
-  author: z.string(),
+  author: z.string().optional(), // Optional, only for credits/metadata
   version: SemverSchema,
   description: z.string(),
   keywords: KeywordsSchema.optional(),
@@ -94,7 +96,8 @@ export type ArtifactEntry = z.infer<typeof ArtifactEntrySchema>;
 
 // Project config (grekt.yaml) - unified schema for both projects and artifacts
 // Projects use: targets, artifacts, customTargets
-// Artifacts use: name, author, version, description, keywords (+ optionally project fields if they depend on other artifacts)
+// Artifacts use: name (@scope/name for publishing), version, description, keywords
+// author is optional (only for credits/metadata)
 export const ProjectConfigSchema = z.object({
   // Manifest fields (for publishing artifacts)
   name: z.string().optional(),
@@ -112,16 +115,15 @@ export const ProjectConfigSchema = z.object({
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 
 // Validation helper: check if config has required manifest fields for publishing
+// Note: author is optional (only for credits), scope comes from name
 export function hasManifestFields(config: ProjectConfig): config is ProjectConfig & {
   name: string;
-  author: string;
   version: string;
   description: string;
   keywords: string[];
 } {
   return !!(
     config.name &&
-    config.author &&
     config.version &&
     config.description &&
     config.keywords &&
