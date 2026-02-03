@@ -1,3 +1,23 @@
+# [5.0.0](https://github.com/grekt-labs/cli-engine/compare/v4.8.2...v5.0.0) (2026-02-03)
+
+
+### Features
+
+* support scoped names in artifact manifest ([#38](https://github.com/grekt-labs/cli-engine/issues/38)) ([cb4b1a4](https://github.com/grekt-labs/cli-engine/commit/cb4b1a46932188579a991fd52234c6ed036efff4))
+* trigger release ([9d2b7df](https://github.com/grekt-labs/cli-engine/commit/9d2b7dfe4da97a664a27cfe1f93759dd788dfeb9))
+
+
+### BREAKING CHANGES
+
+* Artifacts using author field for scope must migrate
+to scoped name format (e.g., name: "@scope/artifact-name")
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+* docs: update architecture example for scoped name format
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
 ## [4.8.2](https://github.com/grekt-labs/cli-engine/compare/v4.8.1...v4.8.2) (2026-02-01)
 
 
