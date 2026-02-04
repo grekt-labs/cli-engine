@@ -1,3 +1,10 @@
+## [5.2.1](https://github.com/grekt-labs/cli-engine/compare/v5.2.0...v5.2.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* change rules format from json to md ([688fa27](https://github.com/grekt-labs/cli-engine/commit/688fa27694079319da2328da8ef5bfe4736ee030))
+
 # [5.2.0](https://github.com/grekt-labs/cli-engine/compare/v5.1.0...v5.2.0) (2026-02-04)
 
 
