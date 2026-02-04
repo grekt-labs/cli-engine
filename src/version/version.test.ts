@@ -7,6 +7,7 @@ import {
   isGreaterThan,
   isLessThan,
   bumpVersion,
+  bumpPrerelease,
 } from "./version";
 
 describe("version", () => {
@@ -181,6 +182,33 @@ describe("version", () => {
     test("handles prerelease versions", () => {
       expect(bumpVersion("1.0.0-alpha", "patch")).toBe("1.0.0");
       expect(bumpVersion("1.0.0-beta.1", "minor")).toBe("1.0.0");
+    });
+  });
+
+  describe("bumpPrerelease", () => {
+    test("creates beta prerelease from stable version", () => {
+      expect(bumpPrerelease("1.0.0", "beta")).toBe("1.0.1-beta.0");
+      expect(bumpPrerelease("2.5.3", "beta")).toBe("2.5.4-beta.0");
+    });
+
+    test("increments existing beta prerelease", () => {
+      expect(bumpPrerelease("1.0.1-beta.0", "beta")).toBe("1.0.1-beta.1");
+      expect(bumpPrerelease("1.0.1-beta.1", "beta")).toBe("1.0.1-beta.2");
+      expect(bumpPrerelease("1.0.1-beta.9", "beta")).toBe("1.0.1-beta.10");
+    });
+
+    test("switches prerelease identifier", () => {
+      expect(bumpPrerelease("1.0.0-alpha.0", "beta")).toBe("1.0.0-beta.0");
+      expect(bumpPrerelease("1.0.0-rc.1", "beta")).toBe("1.0.0-beta.0");
+    });
+
+    test("works with different identifiers", () => {
+      expect(bumpPrerelease("1.0.0", "alpha")).toBe("1.0.1-alpha.0");
+      expect(bumpPrerelease("1.0.0", "rc")).toBe("1.0.1-rc.0");
+    });
+
+    test("throws on invalid version", () => {
+      expect(() => bumpPrerelease("invalid", "beta")).toThrow();
     });
   });
 });
