@@ -22,7 +22,7 @@ export const CATEGORY_CONFIG: Record<Category, CategoryConfig> = {
   skills: { singular: "skill", defaultPath: "skills", allowedFormats: ["md"] },
   commands: { singular: "command", defaultPath: "commands", allowedFormats: ["md"] },
   mcps: { singular: "mcp", defaultPath: "mcps", allowedFormats: ["json"] },
-  rules: { singular: "rule", defaultPath: "rules", allowedFormats: ["json"] },
+  rules: { singular: "rule", defaultPath: "rules", allowedFormats: ["md"] },
 };
 
 export function isValidCategory(value: string): value is Category {
