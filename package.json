@@ -1,6 +1,6 @@
 {
   "name": "@grekt-labs/cli-engine",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "Deterministic core logic for grekt CLI. Portable, testable, dependency-injected.",
   "type": "module",
   "main": "dist/index.js",

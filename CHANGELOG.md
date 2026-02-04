@@ -1,3 +1,10 @@
+# [5.2.0](https://github.com/grekt-labs/cli-engine/compare/v5.1.0...v5.2.0) (2026-02-04)
+
+
+### Features
+
+* **workspace:** add monorepo workspace support ([#41](https://github.com/grekt-labs/cli-engine/issues/41)) ([8199b01](https://github.com/grekt-labs/cli-engine/commit/8199b01e2d42ab32a57d85db9c58654f8c7d6543))
+
 # [5.1.0](https://github.com/grekt-labs/cli-engine/compare/v5.0.0...v5.1.0) (2026-02-04)
 
 
