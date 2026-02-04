@@ -1,3 +1,10 @@
+# [5.1.0](https://github.com/grekt-labs/cli-engine/compare/v5.0.0...v5.1.0) (2026-02-04)
+
+
+### Features
+
+* **version:** add bumpPrerelease function for beta versioning ([#39](https://github.com/grekt-labs/cli-engine/issues/39)) ([4baf214](https://github.com/grekt-labs/cli-engine/commit/4baf21454be947527f19854b1e7b8d9d1b567e38))
+
 # [5.0.0](https://github.com/grekt-labs/cli-engine/compare/v4.8.2...v5.0.0) (2026-02-03)
 
 
