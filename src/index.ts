@@ -35,5 +35,8 @@ export * from '#/version';
 // OCI Distribution Spec (GHCR support)
 export * from '#/oci';
 
+// Workspace (monorepo support)
+export * from '#/workspace';
+
 // TODO: Export modules as they are migrated
 // export * from '#/operations';

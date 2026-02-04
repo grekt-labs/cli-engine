@@ -241,6 +241,12 @@ export type LocalConfig = z.infer<typeof LocalConfigSchema>;
 export const ComponentTypeSchema = z.enum(CATEGORIES);
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 
+// Workspace config (grekt-workspace.yaml) - monorepo artifact coordination
+export const WorkspaceConfigSchema = z.object({
+  workspaces: z.array(z.string()).min(1, "At least one workspace glob is required"),
+});
+export type WorkspaceConfig = z.infer<typeof WorkspaceConfigSchema>;
+
 // Index entry for a single artifact (flat list, no categories)
 export const IndexEntrySchema = z.object({
   artifactId: z.string(), // @scope/name
