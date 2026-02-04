@@ -22,6 +22,24 @@ export function bumpVersion(currentVersion: string, type: BumpType): string {
 }
 
 /**
+ * Bump a version to a prerelease.
+ * If the version is already a prerelease with the same identifier, increments the prerelease number.
+ * Otherwise, creates a new prerelease version.
+ *
+ * Examples:
+ *   1.0.0 + "beta" → 1.0.1-beta.0
+ *   1.0.1-beta.0 + "beta" → 1.0.1-beta.1
+ *   1.0.1-beta.1 + "beta" → 1.0.1-beta.2
+ */
+export function bumpPrerelease(currentVersion: string, identifier: string): string {
+  const newVersion = semver.inc(currentVersion, "prerelease", identifier);
+  if (!newVersion) {
+    throw new Error(`Failed to bump prerelease version ${currentVersion} with identifier ${identifier}`);
+  }
+  return newVersion;
+}
+
+/**
  * Check if a string is a valid semver version.
  * Rejects versions with 'v' prefix (e.g., "v1.0.0" is invalid, "1.0.0" is valid).
  */
