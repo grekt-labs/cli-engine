@@ -12,5 +12,6 @@ export {
   isGreaterThan,
   isLessThan,
   bumpVersion,
+  bumpPrerelease,
   type BumpType,
 } from "./version";
