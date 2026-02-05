@@ -1,3 +1,10 @@
+## [5.3.4](https://github.com/grekt-labs/cli-engine/compare/v5.3.3...v5.3.4) (2026-02-05)
+
+
+### Bug Fixes
+
+* **gitlab:** use URL-encoded project path directly ([#47](https://github.com/grekt-labs/cli-engine/issues/47)) ([eb8a87b](https://github.com/grekt-labs/cli-engine/commit/eb8a87b584b7c3e7848f676ac0683992cf51c64e))
+
 ## [5.3.3](https://github.com/grekt-labs/cli-engine/compare/v5.3.2...v5.3.3) (2026-02-05)
 
 
