@@ -85,8 +85,8 @@ describe("GitHubRegistryClient", () => {
       const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/utils");
 
-      // Repository name should be "myorg/frontend/utils"
-      expect(requestedRepo).toBe("myorg/frontend/utils");
+      // Repository name should be "myorg/frontend-utils"
+      expect(requestedRepo).toBe("myorg/frontend-utils");
     });
 
     test("supports nested folder paths", async () => {
@@ -105,14 +105,14 @@ describe("GitHubRegistryClient", () => {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
-        folder: "packages/frontend",
+        folder: "packages-frontend",
       };
 
       const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/utils");
 
-      // Repository name should be "myorg/packages/frontend/utils"
-      expect(requestedRepo).toBe("myorg/packages/frontend/utils");
+      // Repository name should be "myorg/packages-frontend-utils"
+      expect(requestedRepo).toBe("myorg/packages-frontend-utils");
     });
 
     test("works without folder (backwards compatible)", async () => {
@@ -184,7 +184,7 @@ describe("GitHubRegistryClient", () => {
 
       expect(result.success).toBe(true);
       // Resolved URL should include folder in the path
-      expect(result.resolved).toBe("oci://ghcr.io/myorg/frontend/utils:1.0.0");
+      expect(result.resolved).toBe("oci://ghcr.io/myorg/frontend-utils:1.0.0");
     });
   });
 

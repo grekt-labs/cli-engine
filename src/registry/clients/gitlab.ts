@@ -81,17 +81,13 @@ export class GitLabRegistryClient implements RegistryClient {
 
   /**
    * Get package name for GitLab API
-   * For self-hosted registries, scope is implicit in the project config
-   * @scope/name → name (or folder/name if folder is configured)
    */
   private getPackageName(artifactId: string): string {
-    // Extract just the name part, scope is implicit in registry config
     const match = artifactId.match(/^@[^/]+\/(.+)$/);
     const name = match ? match[1]! : artifactId;
 
-    // Prepend folder if configured (for monorepo organization)
     if (this.folder) {
-      return `${this.folder}/${name}`;
+      return `${this.folder}-${name}`;
     }
 
     return name;

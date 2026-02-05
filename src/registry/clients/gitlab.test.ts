@@ -657,8 +657,8 @@ describe("GitLabRegistryClient", () => {
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/utils");
 
-      // Package name should be "frontend/utils" URL-encoded as "frontend%2Futils"
-      expect(requestedUrl).toContain("package_name=frontend%2Futils");
+      // Package name should be "frontend-utils" (using "-" separator, not "/")
+      expect(requestedUrl).toContain("package_name=frontend-utils");
     });
 
     test("supports nested folder paths", async () => {
@@ -674,19 +674,19 @@ describe("GitLabRegistryClient", () => {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
-        folder: "packages/frontend",
+        folder: "packages-frontend",
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/utils");
 
-      // Package name should be "packages/frontend/utils"
-      expect(requestedUrl).toContain("package_name=packages%2Ffrontend%2Futils");
+      // Package name should be "packages-frontend-utils" (using "-" separator)
+      expect(requestedUrl).toContain("package_name=packages-frontend-utils");
     });
 
     test("uses folder in download URL", async () => {
       const packages = [
-        { id: 1, name: "frontend/utils", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
+        { id: 1, name: "frontend-utils", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
       const tarballData = Buffer.from("fake-tarball");
       let downloadUrl = "";
@@ -717,8 +717,8 @@ describe("GitLabRegistryClient", () => {
       const client = new GitLabRegistryClient(registry, http, fs, shell);
       await client.download("@scope/utils", "1.0.0", "/target");
 
-      // Download URL should have encoded folder/name
-      expect(downloadUrl).toContain("/packages/generic/frontend%2Futils/1.0.0/");
+      // Download URL should have folder-name format
+      expect(downloadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");
     });
 
     test("uses folder in publish URL", async () => {
@@ -753,7 +753,7 @@ describe("GitLabRegistryClient", () => {
       const result = await client.publish("@scope/utils", "1.0.0", "/path/to/tarball.tar.gz");
 
       expect(result.success).toBe(true);
-      expect(uploadUrl).toContain("/packages/generic/frontend%2Futils/1.0.0/");
+      expect(uploadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");
     });
 
     test("works without folder (backwards compatible)", async () => {

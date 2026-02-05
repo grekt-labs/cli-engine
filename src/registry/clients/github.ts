@@ -64,15 +64,13 @@ export class GitHubRegistryClient implements RegistryClient {
 
   /**
    * Get OCI repository name for an artifact
-   * @scope/name → namespace/name (or namespace/folder/name if folder is configured)
    */
   private getRepositoryName(artifactId: string): string {
     const match = artifactId.match(/^@[^/]+\/(.+)$/);
     const name = match ? match[1]! : artifactId;
 
-    // Prepend folder if configured (for monorepo organization)
     if (this.folder) {
-      return `${this.namespace}/${this.folder}/${name}`;
+      return `${this.namespace}/${this.folder}-${name}`;
     }
 
     return `${this.namespace}/${name}`;
