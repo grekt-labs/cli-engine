@@ -63,6 +63,138 @@ describe("GitLabRegistryClient", () => {
         () => new GitLabRegistryClient(registry, http, fs, shell)
       ).not.toThrow();
     });
+
+    test("normalizes host by stripping https:// prefix", async () => {
+      const projectInfo = { id: 12345 };
+      let requestedUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        requestedUrl = url;
+        if (url.includes("/packages?")) return jsonResponse([]);
+        return jsonResponse(projectInfo);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "https://gitlab.example.com",
+        project: "group/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(requestedUrl).toContain("https://gitlab.example.com/api/v4");
+      expect(requestedUrl).not.toContain("https://https://");
+    });
+
+    test("normalizes host by stripping http:// prefix", async () => {
+      const projectInfo = { id: 12345 };
+      let requestedUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        requestedUrl = url;
+        if (url.includes("/packages?")) return jsonResponse([]);
+        return jsonResponse(projectInfo);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "http://gitlab.internal",
+        project: "group/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(requestedUrl).toContain("https://gitlab.internal/api/v4");
+      expect(requestedUrl).not.toContain("http://");
+    });
+
+    test("normalizes project by stripping leading slash", async () => {
+      const projectInfo = { id: 12345 };
+      let projectUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        if (url.includes("/projects/") && !url.includes("/packages")) {
+          projectUrl = url;
+        }
+        if (url.includes("/packages?")) return jsonResponse([]);
+        return jsonResponse(projectInfo);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "/group/subgroup/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(projectUrl).toContain("group%2Fsubgroup%2Fproject");
+      expect(projectUrl).not.toContain("%2Fgroup");
+    });
+  });
+
+  describe("error handling", () => {
+    test("returns clear error when connection fails", async () => {
+      const http = createMockHttpClient();
+      http.fetch = async () => {
+        throw new Error("fetch failed");
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.unreachable.com",
+        project: "group/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Cannot connect to GitLab");
+      expect(result.error).toContain("gitlab.unreachable.com");
+    });
+
+    test("returns clear error on 401 authentication failure", async () => {
+      const http = createMockHttpClient();
+      http.fetch = async () => errorResponse(401, "Unauthorized");
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        token: "bad-token",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("authentication failed");
+    });
+
+    test("returns clear error on 404 project not found", async () => {
+      const http = createMockHttpClient();
+      http.fetch = async () => errorResponse(404, "Not Found");
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "nonexistent/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("project not found");
+      expect(result.error).toContain("nonexistent/project");
+    });
   });
 
   describe("download", () => {
