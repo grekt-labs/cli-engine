@@ -20,6 +20,7 @@ export interface ResolvedRegistry {
   host: string;
   project?: string;
   token?: string;
+  folder?: string; // Prefix for package names in registry (e.g., "frontend" → "frontend/artifact-name")
 }
 
 /**

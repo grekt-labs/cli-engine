@@ -34,6 +34,7 @@ export class GitLabRegistryClient implements RegistryClient {
   private host: string;
   private encodedProject: string;
   private token?: string;
+  private folder?: string;
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
@@ -53,6 +54,7 @@ export class GitLabRegistryClient implements RegistryClient {
     // GitLab API accepts both numeric IDs and URL-encoded paths
     this.encodedProject = encodeURIComponent(normalizeProject(registry.project));
     this.token = registry.token;
+    this.folder = registry.folder;
     this.http = http;
     this.fs = fs;
     this.shell = shell;
@@ -80,12 +82,19 @@ export class GitLabRegistryClient implements RegistryClient {
   /**
    * Get package name for GitLab API
    * For self-hosted registries, scope is implicit in the project config
-   * @scope/name → name
+   * @scope/name → name (or folder/name if folder is configured)
    */
   private getPackageName(artifactId: string): string {
     // Extract just the name part, scope is implicit in registry config
     const match = artifactId.match(/^@[^/]+\/(.+)$/);
-    return match ? match[1]! : artifactId;
+    const name = match ? match[1]! : artifactId;
+
+    // Prepend folder if configured (for monorepo organization)
+    if (this.folder) {
+      return `${this.folder}/${name}`;
+    }
+
+    return name;
   }
 
   /**
@@ -94,9 +103,10 @@ export class GitLabRegistryClient implements RegistryClient {
   private async listPackages(artifactId: string): Promise<{ data: GitLabPackage[]; error?: string }> {
     try {
       const packageName = this.getPackageName(artifactId);
+      const encodedPackageName = encodeURIComponent(packageName);
 
       // GitLab API: GET /projects/:id_or_path/packages?package_type=generic&package_name=:name
-      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages?package_type=generic&package_name=${packageName}`;
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages?package_type=generic&package_name=${encodedPackageName}`;
 
       const response = await this.http.fetch(url, { headers: this.getHeaders() });
 
@@ -122,6 +132,7 @@ export class GitLabRegistryClient implements RegistryClient {
   ): Promise<DownloadResult> {
     try {
       const packageName = this.getPackageName(artifactId);
+      const encodedPackageName = encodeURIComponent(packageName);
 
       // If no version specified, get the latest
       let resolvedVersion = version;
@@ -139,7 +150,7 @@ export class GitLabRegistryClient implements RegistryClient {
       // Download URL for generic package file
       // GET /projects/:id_or_path/packages/generic/:package_name/:package_version/:file_name
       const fileName = "artifact.tar.gz";
-      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${packageName}/${resolvedVersion}/${fileName}`;
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${encodedPackageName}/${resolvedVersion}/${fileName}`;
 
       const response = await this.http.fetch(url, {
         headers: this.getHeaders(),
@@ -219,11 +230,12 @@ export class GitLabRegistryClient implements RegistryClient {
 
     try {
       const packageName = this.getPackageName(artifactId);
+      const encodedPackageName = encodeURIComponent(packageName);
       const fileName = "artifact.tar.gz";
 
       // Upload URL for generic package file
       // PUT /projects/:id_or_path/packages/generic/:package_name/:package_version/:file_name
-      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${packageName}/${version}/${fileName}`;
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${encodedPackageName}/${version}/${fileName}`;
 
       const body = this.fs.readFileBinary(tarballPath);
 

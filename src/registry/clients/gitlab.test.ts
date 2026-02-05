@@ -636,4 +636,149 @@ describe("GitLabRegistryClient", () => {
       expect(capturedHeaders["Deploy-Token"]).toBeUndefined();
     });
   });
+
+  describe("folder configuration", () => {
+    test("prepends folder to package name when configured", async () => {
+      let requestedUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        requestedUrl = url;
+        return jsonResponse([]);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        folder: "frontend",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/utils");
+
+      // Package name should be "frontend/utils" URL-encoded as "frontend%2Futils"
+      expect(requestedUrl).toContain("package_name=frontend%2Futils");
+    });
+
+    test("supports nested folder paths", async () => {
+      let requestedUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        requestedUrl = url;
+        return jsonResponse([]);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        folder: "packages/frontend",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/utils");
+
+      // Package name should be "packages/frontend/utils"
+      expect(requestedUrl).toContain("package_name=packages%2Ffrontend%2Futils");
+    });
+
+    test("uses folder in download URL", async () => {
+      const packages = [
+        { id: 1, name: "frontend/utils", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
+      ];
+      const tarballData = Buffer.from("fake-tarball");
+      let downloadUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        if (url.includes("/packages/generic/")) {
+          downloadUrl = url;
+          return binaryResponse(tarballData);
+        }
+        if (url.includes("/packages?")) {
+          return jsonResponse(packages);
+        }
+        return errorResponse(404, "Not Found");
+      };
+
+      const fs = createMockFileSystem();
+      const shell = createMockShellExecutor({ "tar": "" });
+      fs.files.set("/target/file.md", { content: "content", isDirectory: false });
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        folder: "frontend",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, fs, shell);
+      await client.download("@scope/utils", "1.0.0", "/target");
+
+      // Download URL should have encoded folder/name
+      expect(downloadUrl).toContain("/packages/generic/frontend%2Futils/1.0.0/");
+    });
+
+    test("uses folder in publish URL", async () => {
+      let uploadUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        if (url.includes("/packages/generic/") && options?.method === "PUT") {
+          uploadUrl = url;
+          return jsonResponse({ message: "created" }, 201);
+        }
+        if (url.includes("/packages?")) {
+          return jsonResponse([]);
+        }
+        return errorResponse(404, "Not Found");
+      };
+
+      const fs = createMockFileSystem({
+        "/path/to/tarball.tar.gz": Buffer.from("tarball content"),
+      });
+      const shell = createMockShellExecutor();
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        token: "my-token",
+        folder: "frontend",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, fs, shell);
+      const result = await client.publish("@scope/utils", "1.0.0", "/path/to/tarball.tar.gz");
+
+      expect(result.success).toBe(true);
+      expect(uploadUrl).toContain("/packages/generic/frontend%2Futils/1.0.0/");
+    });
+
+    test("works without folder (backwards compatible)", async () => {
+      let requestedUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        requestedUrl = url;
+        return jsonResponse([]);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        // no folder
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/utils");
+
+      // Package name should just be "utils" (no folder prefix)
+      // Extract package_name query param and verify it's just "utils"
+      const url = new URL(requestedUrl);
+      expect(url.searchParams.get("package_name")).toBe("utils");
+    });
+  });
 });

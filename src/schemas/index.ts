@@ -203,6 +203,7 @@ export const RegistryEntrySchema = z.object({
   project: z.string().optional(), // Required for gitlab/github, validated at runtime
   host: z.string().optional(), // Optional, has defaults (gitlab.com, github.com)
   token: z.string().optional(), // Can also be set via env vars
+  folder: z.string().optional(), // Optional prefix for package names (e.g., "frontend" → "frontend/artifact-name")
 });
 export type RegistryEntry = z.infer<typeof RegistryEntrySchema>;
 
