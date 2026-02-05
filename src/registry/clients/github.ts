@@ -29,6 +29,7 @@ export class GitHubRegistryClient implements RegistryClient {
   private host: string;
   private namespace: string;
   private token?: string;
+  private folder?: string;
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
@@ -48,6 +49,7 @@ export class GitHubRegistryClient implements RegistryClient {
 
     this.host = registry.host || DEFAULT_GHCR_HOST;
     this.token = registry.token;
+    this.folder = registry.folder;
     this.http = http;
     this.fs = fs;
     this.shell = shell;
@@ -62,11 +64,17 @@ export class GitHubRegistryClient implements RegistryClient {
 
   /**
    * Get OCI repository name for an artifact
-   * @scope/name → namespace/name
+   * @scope/name → namespace/name (or namespace/folder/name if folder is configured)
    */
   private getRepositoryName(artifactId: string): string {
     const match = artifactId.match(/^@[^/]+\/(.+)$/);
     const name = match ? match[1]! : artifactId;
+
+    // Prepend folder if configured (for monorepo organization)
+    if (this.folder) {
+      return `${this.namespace}/${this.folder}/${name}`;
+    }
+
     return `${this.namespace}/${name}`;
   }
 
