@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/grekt-labs/cli-engine/compare/v5.2.1...v5.3.0) (2026-02-05)
+
+
+### Features
+
+* add friendly-errors utility for human-readable parsing errors ([#43](https://github.com/grekt-labs/cli-engine/issues/43)) ([f670387](https://github.com/grekt-labs/cli-engine/commit/f67038731b67a77fddeb8bc36068c747d1773a85))
+
 ## [5.2.1](https://github.com/grekt-labs/cli-engine/compare/v5.2.0...v5.2.1) (2026-02-04)
 
 
