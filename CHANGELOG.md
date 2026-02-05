@@ -1,3 +1,10 @@
+## [5.5.1](https://github.com/grekt-labs/cli-engine/compare/v5.5.0...v5.5.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **registry:** use hyphen separator for folder in package names ([5c37af9](https://github.com/grekt-labs/cli-engine/commit/5c37af9baa0ea73bb4247988c1ed6a6322497fce))
+
 # [5.5.0](https://github.com/grekt-labs/cli-engine/compare/v5.4.0...v5.5.0) (2026-02-05)
 
 
