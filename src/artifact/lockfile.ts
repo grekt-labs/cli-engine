@@ -1,14 +1,14 @@
-import { parse, stringify } from "yaml";
+import { stringify } from "yaml";
 import type { FileSystem } from "#/core";
 import { LockfileSchema, type Lockfile } from "#/schemas";
+import { safeParseYaml, type ParseResult } from "#/friendly-errors";
 
-export function getLockfile(fs: FileSystem, lockfilePath: string): Lockfile {
+export function getLockfile(fs: FileSystem, lockfilePath: string) {
   if (!fs.exists(lockfilePath)) {
-    return createEmptyLockfile();
+    return { success: true as const, data: createEmptyLockfile() };
   }
   const content = fs.readFile(lockfilePath);
-  const raw = parse(content);
-  return LockfileSchema.parse(raw);
+  return safeParseYaml(content, LockfileSchema, lockfilePath);
 }
 
 export function saveLockfile(fs: FileSystem, lockfilePath: string, data: Lockfile): void {

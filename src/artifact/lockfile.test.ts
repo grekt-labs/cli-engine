@@ -61,8 +61,11 @@ describe("lockfile", () => {
 
       const result = getLockfile(fs, "/project/grekt.lock");
 
-      expect(result.version).toBe(1);
-      expect(result.artifacts).toEqual({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.version).toBe(1);
+        expect(result.data.artifacts).toEqual({});
+      }
     });
 
     test("parses existing lockfile", () => {
@@ -86,10 +89,13 @@ describe("lockfile", () => {
 
       const result = getLockfile(fs, "/project/grekt.lock");
 
-      expect(result.version).toBe(1);
-      expect(result.artifacts["@scope/artifact"]).toBeDefined();
-      expect(result.artifacts["@scope/artifact"].version).toBe("1.0.0");
-      expect(result.artifacts["@scope/artifact"].integrity).toBe("sha256:abc123def456");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.version).toBe(1);
+        expect(result.data.artifacts["@scope/artifact"]).toBeDefined();
+        expect(result.data.artifacts["@scope/artifact"].version).toBe("1.0.0");
+        expect(result.data.artifacts["@scope/artifact"].integrity).toBe("sha256:abc123def456");
+      }
     });
 
     test("parses lockfile with multiple artifacts", () => {
@@ -114,9 +120,12 @@ describe("lockfile", () => {
 
       const result = getLockfile(fs, "/project/grekt.lock");
 
-      expect(Object.keys(result.artifacts)).toHaveLength(2);
-      expect(result.artifacts["@org/artifact1"].version).toBe("1.0.0");
-      expect(result.artifacts["@org/artifact2"].version).toBe("2.0.0");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(Object.keys(result.data.artifacts)).toHaveLength(2);
+        expect(result.data.artifacts["@org/artifact1"].version).toBe("1.0.0");
+        expect(result.data.artifacts["@org/artifact2"].version).toBe("2.0.0");
+      }
     });
 
     test("applies default values for optional fields", () => {
@@ -136,7 +145,10 @@ describe("lockfile", () => {
 
       const result = getLockfile(fs, "/project/grekt.lock");
 
-      expect(result.artifacts["@scope/minimal"].files).toEqual({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.artifacts["@scope/minimal"].files).toEqual({});
+      }
     });
   });
 
@@ -225,12 +237,15 @@ describe("lockfile", () => {
       saveLockfile(fs, "/project/grekt.lock", lockfile);
 
       const result = getLockfile(fs, "/project/grekt.lock");
-      const artifact = result.artifacts["@scope/complete"];
-      expect(artifact.version).toBe("3.0.0");
-      expect(artifact.integrity).toBe("sha256:complete");
-      expect(artifact.source).toBe("github:owner/repo");
-      expect(artifact.resolved).toBe("https://api.github.com/repos/owner/repo/tarball/v3.0.0");
-      expect(artifact.files["agent.md"]).toBe("sha256:agentfile");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const artifact = result.data.artifacts["@scope/complete"];
+        expect(artifact.version).toBe("3.0.0");
+        expect(artifact.integrity).toBe("sha256:complete");
+        expect(artifact.source).toBe("github:owner/repo");
+        expect(artifact.resolved).toBe("https://api.github.com/repos/owner/repo/tarball/v3.0.0");
+        expect(artifact.files["agent.md"]).toBe("sha256:agentfile");
+      }
     });
   });
 });
