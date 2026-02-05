@@ -1,3 +1,10 @@
+# [5.4.0](https://github.com/grekt-labs/cli-engine/compare/v5.3.4...v5.4.0) (2026-02-05)
+
+
+### Features
+
+* **registry:** add folder config for monorepo package organization ([06b8e85](https://github.com/grekt-labs/cli-engine/commit/06b8e851105ac47a540d65886eede698aa04fa97))
+
 ## [5.3.4](https://github.com/grekt-labs/cli-engine/compare/v5.3.3...v5.3.4) (2026-02-05)
 
 
