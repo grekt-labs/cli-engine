@@ -1,3 +1,10 @@
+## [5.3.1](https://github.com/grekt-labs/cli-engine/compare/v5.3.0...v5.3.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **gitlab:** normalize host and project config values ([#44](https://github.com/grekt-labs/cli-engine/issues/44)) ([58e3a47](https://github.com/grekt-labs/cli-engine/commit/58e3a475a915f17a779a062b93cae407b6a9e2f6))
+
 # [5.3.0](https://github.com/grekt-labs/cli-engine/compare/v5.2.1...v5.3.0) (2026-02-05)
 
 
