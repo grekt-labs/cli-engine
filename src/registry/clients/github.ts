@@ -29,7 +29,7 @@ export class GitHubRegistryClient implements RegistryClient {
   private host: string;
   private namespace: string;
   private token?: string;
-  private folder?: string;
+  private prefix?: string;
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
@@ -49,7 +49,7 @@ export class GitHubRegistryClient implements RegistryClient {
 
     this.host = registry.host || DEFAULT_GHCR_HOST;
     this.token = registry.token;
-    this.folder = registry.folder;
+    this.prefix = registry.prefix;
     this.http = http;
     this.fs = fs;
     this.shell = shell;
@@ -69,8 +69,8 @@ export class GitHubRegistryClient implements RegistryClient {
     const match = artifactId.match(/^@[^/]+\/(.+)$/);
     const name = match ? match[1]! : artifactId;
 
-    if (this.folder) {
-      return `${this.namespace}/${this.folder}-${name}`;
+    if (this.prefix) {
+      return `${this.namespace}/${this.prefix}-${name}`;
     }
 
     return `${this.namespace}/${name}`;
