@@ -32,9 +32,8 @@ interface GitLabPackage {
 
 export class GitLabRegistryClient implements RegistryClient {
   private host: string;
-  private project: string;
+  private encodedProject: string;
   private token?: string;
-  private projectId?: string; // cached
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
@@ -50,7 +49,9 @@ export class GitLabRegistryClient implements RegistryClient {
     }
 
     this.host = normalizeHost(registry.host);
-    this.project = normalizeProject(registry.project);
+    // URL-encode the project path for API calls
+    // GitLab API accepts both numeric IDs and URL-encoded paths
+    this.encodedProject = encodeURIComponent(normalizeProject(registry.project));
     this.token = registry.token;
     this.http = http;
     this.fs = fs;
@@ -77,44 +78,6 @@ export class GitLabRegistryClient implements RegistryClient {
   }
 
   /**
-   * Get the numeric project ID from GitLab API
-   * Required because some endpoints need numeric ID, not path
-   */
-  private async getProjectId(): Promise<string> {
-    if (this.projectId) return this.projectId;
-
-    const encodedPath = encodeURIComponent(this.project);
-    const url = `https://${this.host}/api/v4/projects/${encodedPath}`;
-
-    let response: Response;
-    try {
-      response = await this.http.fetch(url, { headers: this.getHeaders() });
-    } catch (err) {
-      throw new Error(
-        `Cannot connect to GitLab at ${this.host}. ` +
-        `Check that the host is correct and accessible.`
-      );
-    }
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error(`GitLab authentication failed. Check your token.`);
-      }
-      if (response.status === 404) {
-        throw new Error(
-          `GitLab project not found: ${this.project}. ` +
-          `Check the project path in your registry config.`
-        );
-      }
-      throw new Error(`GitLab API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    this.projectId = String(data.id);
-    return this.projectId;
-  }
-
-  /**
    * Get package name for GitLab API
    * For self-hosted registries, scope is implicit in the project config
    * @scope/name → name
@@ -130,11 +93,10 @@ export class GitLabRegistryClient implements RegistryClient {
    */
   private async listPackages(artifactId: string): Promise<{ data: GitLabPackage[]; error?: string }> {
     try {
-      const projectId = await this.getProjectId();
-      const encodedName = this.getPackageName(artifactId);
+      const packageName = this.getPackageName(artifactId);
 
-      // GitLab API: GET /projects/:id/packages?package_type=generic&package_name=:name
-      const url = `https://${this.host}/api/v4/projects/${projectId}/packages?package_type=generic&package_name=${encodedName}`;
+      // GitLab API: GET /projects/:id_or_path/packages?package_type=generic&package_name=:name
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages?package_type=generic&package_name=${packageName}`;
 
       const response = await this.http.fetch(url, { headers: this.getHeaders() });
 
@@ -159,8 +121,7 @@ export class GitLabRegistryClient implements RegistryClient {
     targetDir: string
   ): Promise<DownloadResult> {
     try {
-      const projectId = await this.getProjectId();
-      const encodedName = this.getPackageName(artifactId);
+      const packageName = this.getPackageName(artifactId);
 
       // If no version specified, get the latest
       let resolvedVersion = version;
@@ -176,9 +137,9 @@ export class GitLabRegistryClient implements RegistryClient {
       }
 
       // Download URL for generic package file
-      // GET /projects/:id/packages/generic/:package_name/:package_version/:file_name
+      // GET /projects/:id_or_path/packages/generic/:package_name/:package_version/:file_name
       const fileName = "artifact.tar.gz";
-      const url = `https://${this.host}/api/v4/projects/${projectId}/packages/generic/${encodedName}/${resolvedVersion}/${fileName}`;
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${packageName}/${resolvedVersion}/${fileName}`;
 
       const response = await this.http.fetch(url, {
         headers: this.getHeaders(),
@@ -257,13 +218,12 @@ export class GitLabRegistryClient implements RegistryClient {
     }
 
     try {
-      const projectId = await this.getProjectId();
-      const encodedName = this.getPackageName(artifactId);
+      const packageName = this.getPackageName(artifactId);
       const fileName = "artifact.tar.gz";
 
       // Upload URL for generic package file
-      // PUT /projects/:id/packages/generic/:package_name/:package_version/:file_name
-      const url = `https://${this.host}/api/v4/projects/${projectId}/packages/generic/${encodedName}/${version}/${fileName}`;
+      // PUT /projects/:id_or_path/packages/generic/:package_name/:package_version/:file_name
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${packageName}/${version}/${fileName}`;
 
       const body = this.fs.readFileBinary(tarballPath);
 

@@ -65,14 +65,12 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("normalizes host by stripping https:// prefix", async () => {
-      const projectInfo = { id: 12345 };
       let requestedUrl = "";
 
       const http = createMockHttpClient();
       http.fetch = async (url: string) => {
         requestedUrl = url;
-        if (url.includes("/packages?")) return jsonResponse([]);
-        return jsonResponse(projectInfo);
+        return jsonResponse([]);
       };
 
       const registry: ResolvedRegistry = {
@@ -89,14 +87,12 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("normalizes host by stripping http:// prefix", async () => {
-      const projectInfo = { id: 12345 };
       let requestedUrl = "";
 
       const http = createMockHttpClient();
       http.fetch = async (url: string) => {
         requestedUrl = url;
-        if (url.includes("/packages?")) return jsonResponse([]);
-        return jsonResponse(projectInfo);
+        return jsonResponse([]);
       };
 
       const registry: ResolvedRegistry = {
@@ -112,17 +108,34 @@ describe("GitLabRegistryClient", () => {
       expect(requestedUrl).not.toContain("http://");
     });
 
-    test("normalizes project by stripping leading slash", async () => {
-      const projectInfo = { id: 12345 };
-      let projectUrl = "";
+    test("URL-encodes project path for API calls", async () => {
+      let requestedUrl = "";
 
       const http = createMockHttpClient();
       http.fetch = async (url: string) => {
-        if (url.includes("/projects/") && !url.includes("/packages")) {
-          projectUrl = url;
-        }
-        if (url.includes("/packages?")) return jsonResponse([]);
-        return jsonResponse(projectInfo);
+        requestedUrl = url;
+        return jsonResponse([]);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/subgroup/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(requestedUrl).toContain("group%2Fsubgroup%2Fproject");
+    });
+
+    test("normalizes project by stripping leading slash", async () => {
+      let requestedUrl = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        requestedUrl = url;
+        return jsonResponse([]);
       };
 
       const registry: ResolvedRegistry = {
@@ -134,8 +147,8 @@ describe("GitLabRegistryClient", () => {
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/artifact");
 
-      expect(projectUrl).toContain("group%2Fsubgroup%2Fproject");
-      expect(projectUrl).not.toContain("%2Fgroup");
+      expect(requestedUrl).toContain("group%2Fsubgroup%2Fproject");
+      expect(requestedUrl).not.toContain("%2Fgroup");
     });
   });
 
@@ -156,8 +169,7 @@ describe("GitLabRegistryClient", () => {
       const result = await client.download("@scope/artifact", "1.0.0", "/target");
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("Cannot connect to GitLab");
-      expect(result.error).toContain("gitlab.unreachable.com");
+      expect(result.error).toContain("Download failed");
     });
 
     test("returns clear error on 401 authentication failure", async () => {
@@ -175,31 +187,12 @@ describe("GitLabRegistryClient", () => {
       const result = await client.download("@scope/artifact", "1.0.0", "/target");
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("authentication failed");
-    });
-
-    test("returns clear error on 404 project not found", async () => {
-      const http = createMockHttpClient();
-      http.fetch = async () => errorResponse(404, "Not Found");
-
-      const registry: ResolvedRegistry = {
-        type: "gitlab",
-        host: "gitlab.com",
-        project: "nonexistent/project",
-      };
-
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("project not found");
-      expect(result.error).toContain("nonexistent/project");
+      expect(result.error).toContain("401");
     });
   });
 
   describe("download", () => {
     test("downloads artifact successfully", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
@@ -208,9 +201,8 @@ describe("GitLabRegistryClient", () => {
       const { client, fs } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
-          ["https://gitlab.com/api/v4/projects/12345/packages/generic/artifact/1.0.0/artifact.tar.gz", binaryResponse(tarballData)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages/generic/artifact/1.0.0/artifact.tar.gz", binaryResponse(tarballData)],
         ])
       );
 
@@ -224,7 +216,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("resolves latest version when not specified", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 2, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-02-01" },
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
@@ -234,9 +225,8 @@ describe("GitLabRegistryClient", () => {
       const { client, fs } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
-          ["https://gitlab.com/api/v4/projects/12345/packages/generic/artifact/2.0.0/artifact.tar.gz", binaryResponse(tarballData)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages/generic/artifact/2.0.0/artifact.tar.gz", binaryResponse(tarballData)],
         ])
       );
 
@@ -249,13 +239,10 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("returns error when no versions found", async () => {
-      const projectInfo = { id: 12345 };
-
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=missing", jsonResponse([])],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=missing", jsonResponse([])],
         ])
       );
 
@@ -265,8 +252,7 @@ describe("GitLabRegistryClient", () => {
       expect(result.error).toContain("No versions found");
     });
 
-    test("uses correct API URL format", async () => {
-      const projectInfo = { id: 99999 };
+    test("uses correct API URL format with encoded project path", async () => {
       const packages = [
         { id: 1, name: "my-artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
@@ -281,9 +267,6 @@ describe("GitLabRegistryClient", () => {
         }
         if (url.includes("/packages?")) {
           return jsonResponse(packages);
-        }
-        if (url.includes("/projects/")) {
-          return jsonResponse(projectInfo);
         }
         return errorResponse(404, "Not Found");
       };
@@ -303,11 +286,11 @@ describe("GitLabRegistryClient", () => {
       await client.download("@scope/my-artifact", "1.0.0", "/target");
 
       expect(downloadUrl).toContain("gitlab.mycompany.com");
+      expect(downloadUrl).toContain("team%2Fartifacts");
       expect(downloadUrl).toContain("/packages/generic/my-artifact/1.0.0/artifact.tar.gz");
     });
 
     test("calculates integrity after extraction", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
@@ -316,9 +299,8 @@ describe("GitLabRegistryClient", () => {
       const { client, fs } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
-          ["https://gitlab.com/api/v4/projects/12345/packages/generic/artifact/1.0.0/artifact.tar.gz", binaryResponse(tarballData)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages/generic/artifact/1.0.0/artifact.tar.gz", binaryResponse(tarballData)],
         ])
       );
 
@@ -343,7 +325,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("prevents overwriting existing versions", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
@@ -351,8 +332,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { token: "my-token" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -363,7 +343,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("uploads tarball when version does not exist", async () => {
-      const projectInfo = { id: 12345 };
       const packages: unknown[] = [];
       let uploadedUrl = "";
 
@@ -375,9 +354,6 @@ describe("GitLabRegistryClient", () => {
         }
         if (url.includes("/packages?")) {
           return jsonResponse(packages);
-        }
-        if (url.includes("/projects/")) {
-          return jsonResponse(projectInfo);
         }
         return errorResponse(404, "Not Found");
       };
@@ -399,13 +375,13 @@ describe("GitLabRegistryClient", () => {
       const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
 
       expect(result.success).toBe(true);
+      expect(uploadedUrl).toContain("group%2Fproject");
       expect(uploadedUrl).toContain("/packages/generic/artifact/1.0.0/artifact.tar.gz");
     });
   });
 
   describe("listVersions", () => {
     test("returns versions sorted by semver (not by created_at)", async () => {
-      const projectInfo = { id: 12345 };
       // created_at order: 1.0.0, 10.0.0, 2.0.0
       // semver order: 10.0.0, 2.0.0, 1.0.0
       const packages = [
@@ -417,8 +393,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -429,7 +404,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("filters out invalid semver versions", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
         { id: 2, name: "artifact", version: "banana", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
@@ -439,8 +413,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -450,13 +423,10 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("returns empty array when no packages found", async () => {
-      const projectInfo = { id: 12345 };
-
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=missing", jsonResponse([])],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=missing", jsonResponse([])],
         ])
       );
 
@@ -468,7 +438,6 @@ describe("GitLabRegistryClient", () => {
 
   describe("getLatestVersion", () => {
     test("returns highest semver version (not most recently published)", async () => {
-      const projectInfo = { id: 12345 };
       // 10.0.0 was published first, 2.0.0 was published last
       // Latest should be 10.0.0 (highest semver), not 2.0.0 (most recent)
       const packages = [
@@ -480,8 +449,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -491,13 +459,10 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("returns null when no versions exist", async () => {
-      const projectInfo = { id: 12345 };
-
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=missing", jsonResponse([])],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=missing", jsonResponse([])],
         ])
       );
 
@@ -509,7 +474,6 @@ describe("GitLabRegistryClient", () => {
 
   describe("versionExists", () => {
     test("returns true when version exists", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
         { id: 2, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-02-01" },
@@ -518,8 +482,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -529,7 +492,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("returns false when version does not exist", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
@@ -537,8 +499,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -550,13 +511,10 @@ describe("GitLabRegistryClient", () => {
 
   describe("getArtifactInfo", () => {
     test("returns null when no packages found", async () => {
-      const projectInfo = { id: 12345 };
-
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=missing", jsonResponse([])],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=missing", jsonResponse([])],
         ])
       );
 
@@ -566,7 +524,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("returns artifact info with versions sorted by semver", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01T00:00:00Z" },
         { id: 2, name: "artifact", version: "10.0.0", package_type: "generic", created_at: "2024-02-01T00:00:00Z" },
@@ -576,8 +533,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -593,7 +549,6 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("includes publishedAt from created_at", async () => {
-      const projectInfo = { id: 12345 };
       const packages = [
         { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-15T10:30:00Z" },
       ];
@@ -601,8 +556,7 @@ describe("GitLabRegistryClient", () => {
       const { client } = createClient(
         { host: "gitlab.com", project: "group/project" },
         new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject", jsonResponse(projectInfo)],
-          ["https://gitlab.com/api/v4/projects/12345/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
+          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
         ])
       );
 
@@ -614,14 +568,12 @@ describe("GitLabRegistryClient", () => {
 
   describe("authentication headers", () => {
     test("uses PRIVATE-TOKEN header for personal access tokens", async () => {
-      const projectInfo = { id: 12345 };
       let capturedHeaders: Record<string, string> = {};
 
       const http = createMockHttpClient();
       http.fetch = async (url: string, options?: RequestInit) => {
         capturedHeaders = (options?.headers as Record<string, string>) ?? {};
-        if (url.includes("/packages?")) return jsonResponse([]);
-        return jsonResponse(projectInfo);
+        return jsonResponse([]);
       };
 
       const registry: ResolvedRegistry = {
@@ -639,14 +591,12 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("uses Deploy-Token header for deploy tokens", async () => {
-      const projectInfo = { id: 12345 };
       let capturedHeaders: Record<string, string> = {};
 
       const http = createMockHttpClient();
       http.fetch = async (url: string, options?: RequestInit) => {
         capturedHeaders = (options?.headers as Record<string, string>) ?? {};
-        if (url.includes("/packages?")) return jsonResponse([]);
-        return jsonResponse(projectInfo);
+        return jsonResponse([]);
       };
 
       const registry: ResolvedRegistry = {
@@ -664,14 +614,12 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("uses PRIVATE-TOKEN header for tokens without recognized prefix", async () => {
-      const projectInfo = { id: 12345 };
       let capturedHeaders: Record<string, string> = {};
 
       const http = createMockHttpClient();
       http.fetch = async (url: string, options?: RequestInit) => {
         capturedHeaders = (options?.headers as Record<string, string>) ?? {};
-        if (url.includes("/packages?")) return jsonResponse([]);
-        return jsonResponse(projectInfo);
+        return jsonResponse([]);
       };
 
       const registry: ResolvedRegistry = {
@@ -686,44 +634,6 @@ describe("GitLabRegistryClient", () => {
 
       expect(capturedHeaders["PRIVATE-TOKEN"]).toBe("some-legacy-token");
       expect(capturedHeaders["Deploy-Token"]).toBeUndefined();
-    });
-  });
-
-  describe("getProjectId caching", () => {
-    test("caches project ID after first request", async () => {
-      const projectInfo = { id: 12345 };
-      let projectApiCalls = 0;
-
-      const http = createMockHttpClient();
-      http.fetch = async (url: string) => {
-        if (url.includes("/projects/group%2Fproject") && !url.includes("/packages")) {
-          projectApiCalls++;
-          return jsonResponse(projectInfo);
-        }
-        if (url.includes("/packages?")) {
-          return jsonResponse([]);
-        }
-        return errorResponse(404, "Not Found");
-      };
-
-      const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
-
-      const registry: ResolvedRegistry = {
-        type: "gitlab",
-        host: "gitlab.com",
-        project: "group/project",
-      };
-
-      const client = new GitLabRegistryClient(registry, http, fs, shell);
-
-      // Make multiple calls
-      await client.listVersions("@scope/artifact");
-      await client.listVersions("@scope/artifact");
-      await client.getLatestVersion("@scope/artifact");
-
-      // Project info should only be fetched once
-      expect(projectApiCalls).toBe(1);
     });
   });
 });
