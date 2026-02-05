@@ -60,8 +60,8 @@ describe("GitHubRegistryClient", () => {
     });
   });
 
-  describe("folder configuration", () => {
-    test("prepends folder to repository name when configured", async () => {
+  describe("prefix configuration", () => {
+    test("prepends prefix to repository name when configured", async () => {
       let requestedRepo = "";
 
       const http = createMockHttpClient();
@@ -79,7 +79,7 @@ describe("GitHubRegistryClient", () => {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
-        folder: "frontend",
+        prefix: "frontend",
       };
 
       const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
@@ -89,7 +89,7 @@ describe("GitHubRegistryClient", () => {
       expect(requestedRepo).toBe("myorg/frontend-utils");
     });
 
-    test("supports nested folder paths", async () => {
+    test("supports prefix with hyphen", async () => {
       let requestedRepo = "";
 
       const http = createMockHttpClient();
@@ -105,7 +105,7 @@ describe("GitHubRegistryClient", () => {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
-        folder: "packages-frontend",
+        prefix: "packages-frontend",
       };
 
       const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
@@ -115,7 +115,7 @@ describe("GitHubRegistryClient", () => {
       expect(requestedRepo).toBe("myorg/packages-frontend-utils");
     });
 
-    test("works without folder (backwards compatible)", async () => {
+    test("works without prefix (backwards compatible)", async () => {
       let requestedRepo = "";
 
       const http = createMockHttpClient();
@@ -131,17 +131,17 @@ describe("GitHubRegistryClient", () => {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
-        // no folder
+        // no prefix
       };
 
       const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/utils");
 
-      // Repository name should just be "myorg/utils" (no folder)
+      // Repository name should just be "myorg/utils" (no prefix)
       expect(requestedRepo).toBe("myorg/utils");
     });
 
-    test("folder appears in resolved OCI URL after download", async () => {
+    test("prefix appears in resolved OCI URL after download", async () => {
       const http = createMockHttpClient();
       // Mock OCI endpoints
       http.fetch = async (url: string) => {
@@ -176,14 +176,14 @@ describe("GitHubRegistryClient", () => {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
-        folder: "frontend",
+        prefix: "frontend",
       };
 
       const client = new GitHubRegistryClient(registry, http, fs, shell);
       const result = await client.download("@scope/utils", "1.0.0", "/target");
 
       expect(result.success).toBe(true);
-      // Resolved URL should include folder in the path
+      // Resolved URL should include prefix in the path
       expect(result.resolved).toBe("oci://ghcr.io/myorg/frontend-utils:1.0.0");
     });
   });

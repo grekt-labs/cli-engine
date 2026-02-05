@@ -109,24 +109,24 @@ describe("resolveRegistry", () => {
     expect(resolveRegistry("@org", config).host).toBe(GITLAB_HOST);
   });
 
-  test("includes folder in resolved registry", () => {
+  test("includes prefix in resolved registry", () => {
     const config: LocalConfig = {
       registries: {
-        "@org": { type: "gitlab", project: "org/artifacts", folder: "frontend" },
+        "@org": { type: "gitlab", project: "org/artifacts", prefix: "frontend" },
       },
     };
 
     const result = resolveRegistry("@org", config);
 
-    expect(result.folder).toBe("frontend");
+    expect(result.prefix).toBe("frontend");
   });
 
-  test("folder is undefined when not specified", () => {
+  test("prefix is undefined when not specified", () => {
     const config: LocalConfig = {
       registries: { "@org": { type: "gitlab", project: "p" } },
     };
 
-    expect(resolveRegistry("@org", config).folder).toBeUndefined();
+    expect(resolveRegistry("@org", config).prefix).toBeUndefined();
   });
 
   describe("token resolution", () => {

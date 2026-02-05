@@ -34,7 +34,7 @@ export class GitLabRegistryClient implements RegistryClient {
   private host: string;
   private encodedProject: string;
   private token?: string;
-  private folder?: string;
+  private prefix?: string;
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
@@ -54,7 +54,7 @@ export class GitLabRegistryClient implements RegistryClient {
     // GitLab API accepts both numeric IDs and URL-encoded paths
     this.encodedProject = encodeURIComponent(normalizeProject(registry.project));
     this.token = registry.token;
-    this.folder = registry.folder;
+    this.prefix = registry.prefix;
     this.http = http;
     this.fs = fs;
     this.shell = shell;
@@ -86,8 +86,8 @@ export class GitLabRegistryClient implements RegistryClient {
     const match = artifactId.match(/^@[^/]+\/(.+)$/);
     const name = match ? match[1]! : artifactId;
 
-    if (this.folder) {
-      return `${this.folder}-${name}`;
+    if (this.prefix) {
+      return `${this.prefix}-${name}`;
     }
 
     return name;

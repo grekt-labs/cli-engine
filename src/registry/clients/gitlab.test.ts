@@ -637,8 +637,8 @@ describe("GitLabRegistryClient", () => {
     });
   });
 
-  describe("folder configuration", () => {
-    test("prepends folder to package name when configured", async () => {
+  describe("prefix configuration", () => {
+    test("prepends prefix to package name when configured", async () => {
       let requestedUrl = "";
 
       const http = createMockHttpClient();
@@ -651,7 +651,7 @@ describe("GitLabRegistryClient", () => {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
-        folder: "frontend",
+        prefix: "frontend",
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
@@ -661,7 +661,7 @@ describe("GitLabRegistryClient", () => {
       expect(requestedUrl).toContain("package_name=frontend-utils");
     });
 
-    test("supports nested folder paths", async () => {
+    test("supports prefix with hyphen", async () => {
       let requestedUrl = "";
 
       const http = createMockHttpClient();
@@ -674,7 +674,7 @@ describe("GitLabRegistryClient", () => {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
-        folder: "packages-frontend",
+        prefix: "packages-frontend",
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
@@ -684,7 +684,7 @@ describe("GitLabRegistryClient", () => {
       expect(requestedUrl).toContain("package_name=packages-frontend-utils");
     });
 
-    test("uses folder in download URL", async () => {
+    test("uses prefix in download URL", async () => {
       const packages = [
         { id: 1, name: "frontend-utils", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
       ];
@@ -711,17 +711,16 @@ describe("GitLabRegistryClient", () => {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
-        folder: "frontend",
+        prefix: "frontend",
       };
 
       const client = new GitLabRegistryClient(registry, http, fs, shell);
       await client.download("@scope/utils", "1.0.0", "/target");
 
-      // Download URL should have folder-name format
       expect(downloadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");
     });
 
-    test("uses folder in publish URL", async () => {
+    test("uses prefix in publish URL", async () => {
       let uploadUrl = "";
 
       const http = createMockHttpClient();
@@ -746,7 +745,7 @@ describe("GitLabRegistryClient", () => {
         host: "gitlab.com",
         project: "group/project",
         token: "my-token",
-        folder: "frontend",
+        prefix: "frontend",
       };
 
       const client = new GitLabRegistryClient(registry, http, fs, shell);
@@ -756,7 +755,7 @@ describe("GitLabRegistryClient", () => {
       expect(uploadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");
     });
 
-    test("works without folder (backwards compatible)", async () => {
+    test("works without prefix (backwards compatible)", async () => {
       let requestedUrl = "";
 
       const http = createMockHttpClient();
@@ -769,13 +768,13 @@ describe("GitLabRegistryClient", () => {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
-        // no folder
+        // no prefix
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       await client.listVersions("@scope/utils");
 
-      // Package name should just be "utils" (no folder prefix)
+      // Package name should just be "utils" (no prefix)
       // Extract package_name query param and verify it's just "utils"
       const url = new URL(requestedUrl);
       expect(url.searchParams.get("package_name")).toBe("utils");
