@@ -6,9 +6,9 @@
  */
 
 import { join, relative } from "path";
-import { parse as parseYaml } from "yaml";
 import type { FileSystem } from "#/core";
-import { ArtifactManifestSchema, WorkspaceConfigSchema } from "#/schemas";
+import { ArtifactManifestSchema, WorkspaceConfigSchema, type ArtifactManifest } from "#/schemas";
+import { safeParseYaml, type ParseResult } from "#/friendly-errors";
 import type {
   WorkspaceArtifact,
   WorkspaceContext,
@@ -20,10 +20,10 @@ const ARTIFACT_MANIFEST_FILE = "grekt.yaml";
 
 /**
  * Parse and validate workspace config from raw YAML content.
+ * Returns a result object with friendly error messages.
  */
-export function parseWorkspaceConfig(content: string) {
-  const raw = parseYaml(content);
-  return WorkspaceConfigSchema.parse(raw);
+export function parseWorkspaceConfig(content: string, filepath?: string) {
+  return safeParseYaml(content, WorkspaceConfigSchema, filepath);
 }
 
 /**
@@ -55,28 +55,26 @@ export function findWorkspaceRoot(fs: FileSystem, startDir: string): string | un
 
 /**
  * Load artifact manifest from a directory.
- * Returns undefined if no valid manifest found.
+ * Returns a result object with friendly error messages.
  */
 export function loadArtifactManifest(
   fs: FileSystem,
   artifactDir: string
-): ReturnType<typeof ArtifactManifestSchema.safeParse> {
+): ParseResult<ArtifactManifest> {
   const manifestPath = join(artifactDir, ARTIFACT_MANIFEST_FILE);
 
   if (!fs.exists(manifestPath)) {
-    return { success: false, error: new Error(`No ${ARTIFACT_MANIFEST_FILE} found`) } as never;
-  }
-
-  try {
-    const content = fs.readFile(manifestPath);
-    const raw = parseYaml(content);
-    return ArtifactManifestSchema.safeParse(raw);
-  } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err : new Error(String(err)),
-    } as never;
+      error: {
+        type: "yaml",
+        message: `No ${ARTIFACT_MANIFEST_FILE} found in ${artifactDir}`,
+      },
+    };
   }
+
+  const content = fs.readFile(manifestPath);
+  return safeParseYaml(content, ArtifactManifestSchema, manifestPath);
 }
 
 /**
@@ -99,7 +97,9 @@ export function discoverWorkspaceArtifacts(
     const result = loadArtifactManifest(fs, artifactPath);
 
     if (!result.success) {
-      warnings.push(`${artifactPath}: ${result.error?.message || "Invalid manifest"}`);
+      const details = result.error.details?.join(", ") ?? "";
+      const suffix = details ? ` (${details})` : "";
+      warnings.push(`${artifactPath}: ${result.error.message}${suffix}`);
       continue;
     }
 

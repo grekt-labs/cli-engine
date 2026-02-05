@@ -1,5 +1,4 @@
 import { join, relative } from "path";
-import { parse } from "yaml";
 import type { FileSystem } from "#/core";
 import {
   ArtifactManifestSchema,
@@ -9,6 +8,7 @@ import {
   type ComponentSummary,
 } from "#/schemas";
 import { type Category, CATEGORIES, getCategoriesForFormat, createCategoryRecord, isValidCategory } from "#/categories";
+import { safeParseYaml } from "#/friendly-errors";
 import { parseFrontmatter } from "./frontmatter";
 import type {
   InvalidFileReason,
@@ -25,13 +25,9 @@ function readArtifactManifest(fs: FileSystem, artifactDir: string): ArtifactMani
   const manifestPath = join(artifactDir, "grekt.yaml");
   if (!fs.exists(manifestPath)) return null;
 
-  try {
-    const content = fs.readFile(manifestPath);
-    const raw = parse(content);
-    return ArtifactManifestSchema.parse(raw);
-  } catch {
-    return null;
-  }
+  const content = fs.readFile(manifestPath);
+  const result = safeParseYaml(content, ArtifactManifestSchema, manifestPath);
+  return result.success ? result.data : null;
 }
 
 interface FoundFiles {

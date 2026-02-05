@@ -38,5 +38,8 @@ export * from '#/oci';
 // Workspace (monorepo support)
 export * from '#/workspace';
 
+// Friendly Errors (standard utility for YAML + Zod parsing with human-readable errors)
+export * from '#/friendly-errors';
+
 // TODO: Export modules as they are migrated
 // export * from '#/operations';

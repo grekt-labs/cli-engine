@@ -35,18 +35,23 @@ describe("parseWorkspaceConfig", () => {
   - "backend/*"
   - "frontend/*"
 `;
-    const config = parseWorkspaceConfig(content);
-    expect(config.workspaces).toEqual(["backend/*", "frontend/*"]);
+    const result = parseWorkspaceConfig(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.workspaces).toEqual(["backend/*", "frontend/*"]);
+    }
   });
 
-  test("throws on empty workspaces array", () => {
+  test("returns error on empty workspaces array", () => {
     const content = `workspaces: []`;
-    expect(() => parseWorkspaceConfig(content)).toThrow();
+    const result = parseWorkspaceConfig(content);
+    expect(result.success).toBe(false);
   });
 
-  test("throws on missing workspaces field", () => {
+  test("returns error on missing workspaces field", () => {
     const content = `something: else`;
-    expect(() => parseWorkspaceConfig(content)).toThrow();
+    const result = parseWorkspaceConfig(content);
+    expect(result.success).toBe(false);
   });
 });
 
