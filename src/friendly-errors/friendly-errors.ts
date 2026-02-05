@@ -19,7 +19,7 @@
  */
 
 import { parse as parseYaml, YAMLParseError } from "yaml";
-import type { ZodSchema, ZodError } from "zod";
+import type { ZodType, ZodTypeDef, ZodError } from "zod";
 
 export type ParseErrorType = "yaml" | "validation";
 
@@ -54,11 +54,11 @@ function formatYamlError(error: YAMLParseError): string {
  * @param schema - Zod schema to validate against
  * @param filepath - Optional file path for error context
  */
-export function safeParseYaml<T>(
+export function safeParseYaml<Output, Input = Output>(
   content: string,
-  schema: ZodSchema<T>,
+  schema: ZodType<Output, ZodTypeDef, Input>,
   filepath?: string
-): ParseResult<T> {
+): ParseResult<Output> {
   const fileContext = filepath ? ` in ${filepath}` : "";
 
   // Step 1: Parse YAML
