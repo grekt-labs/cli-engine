@@ -1,3 +1,10 @@
+## [5.5.2](https://github.com/grekt-labs/cli-engine/compare/v5.5.1...v5.5.2) (2026-02-05)
+
+
+### Bug Fixes
+
+* rename folder to prefix in registry config ([#50](https://github.com/grekt-labs/cli-engine/issues/50)) ([6aa2a80](https://github.com/grekt-labs/cli-engine/commit/6aa2a80e5583b593f3a5f690b7b742ed5ca3f622))
+
 ## [5.5.1](https://github.com/grekt-labs/cli-engine/compare/v5.5.0...v5.5.1) (2026-02-05)
 
 
