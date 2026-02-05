@@ -273,8 +273,22 @@ export class GitLabRegistryClient implements RegistryClient {
   }
 
   async versionExists(artifactId: string, version: string): Promise<boolean> {
-    const versions = await this.listVersions(artifactId);
-    return versions.includes(version);
+    try {
+      const packageName = this.getPackageName(artifactId);
+      const encodedPackageName = encodeURIComponent(packageName);
+      const fileName = "artifact.tar.gz";
+
+      const url = `https://${this.host}/api/v4/projects/${this.encodedProject}/packages/generic/${encodedPackageName}/${version}/${fileName}`;
+
+      const response = await this.http.fetch(url, {
+        method: "HEAD",
+        headers: this.getHeaders(),
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
   }
 
   async listVersions(artifactId: string): Promise<string[]> {

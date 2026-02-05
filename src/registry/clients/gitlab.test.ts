@@ -325,17 +325,22 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("prevents overwriting existing versions", async () => {
-      const packages = [
-        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
-      ];
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        if (options?.method === "HEAD") {
+          return new Response(null, { status: 200 });
+        }
+        return errorResponse(404, "Not Found");
+      };
 
-      const { client } = createClient(
-        { token: "my-token" },
-        new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
-        ])
-      );
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        token: "my-token",
+      };
 
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
 
       expect(result.success).toBe(false);
@@ -343,17 +348,16 @@ describe("GitLabRegistryClient", () => {
     });
 
     test("uploads tarball when version does not exist", async () => {
-      const packages: unknown[] = [];
       let uploadedUrl = "";
 
       const http = createMockHttpClient();
       http.fetch = async (url: string, options?: RequestInit) => {
+        if (options?.method === "HEAD") {
+          return errorResponse(404, "Not Found");
+        }
         if (url.includes("/packages/generic/") && options?.method === "PUT") {
           uploadedUrl = url;
           return jsonResponse({ message: "created" }, 201);
-        }
-        if (url.includes("/packages?")) {
-          return jsonResponse(packages);
         }
         return errorResponse(404, "Not Found");
       };
@@ -473,39 +477,65 @@ describe("GitLabRegistryClient", () => {
   });
 
   describe("versionExists", () => {
-    test("returns true when version exists", async () => {
-      const packages = [
-        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
-        { id: 2, name: "artifact", version: "2.0.0", package_type: "generic", created_at: "2024-02-01" },
-      ];
+    test("returns true when HEAD request succeeds", async () => {
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        if (options?.method === "HEAD" && url.includes("/1.0.0/")) {
+          return new Response(null, { status: 200 });
+        }
+        return errorResponse(404, "Not Found");
+      };
 
-      const { client } = createClient(
-        { host: "gitlab.com", project: "group/project" },
-        new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
-        ])
-      );
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+      };
 
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       const result = await client.versionExists("@scope/artifact", "1.0.0");
 
       expect(result).toBe(true);
     });
 
-    test("returns false when version does not exist", async () => {
-      const packages = [
-        { id: 1, name: "artifact", version: "1.0.0", package_type: "generic", created_at: "2024-01-01" },
-      ];
+    test("returns false when HEAD request returns 404", async () => {
+      const http = createMockHttpClient();
+      http.fetch = async () => errorResponse(404, "Not Found");
 
-      const { client } = createClient(
-        { host: "gitlab.com", project: "group/project" },
-        new Map([
-          ["https://gitlab.com/api/v4/projects/group%2Fproject/packages?package_type=generic&package_name=artifact", jsonResponse(packages)],
-        ])
-      );
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+      };
 
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
       const result = await client.versionExists("@scope/artifact", "3.0.0");
 
       expect(result).toBe(false);
+    });
+
+    test("uses correct URL for HEAD request", async () => {
+      let requestedUrl = "";
+      let requestedMethod = "";
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        requestedUrl = url;
+        requestedMethod = options?.method ?? "GET";
+        return new Response(null, { status: 200 });
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.versionExists("@scope/artifact", "1.0.0");
+
+      expect(requestedMethod).toBe("HEAD");
+      expect(requestedUrl).toBe("https://gitlab.com/api/v4/projects/group%2Fproject/packages/generic/artifact/1.0.0/artifact.tar.gz");
     });
   });
 
