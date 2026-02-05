@@ -1,3 +1,10 @@
+## [5.3.2](https://github.com/grekt-labs/cli-engine/compare/v5.3.1...v5.3.2) (2026-02-05)
+
+
+### Bug Fixes
+
+* safeParseYaml returns output type instead of input type ([#45](https://github.com/grekt-labs/cli-engine/issues/45)) ([db45017](https://github.com/grekt-labs/cli-engine/commit/db45017742010d725a22d70625eabf1d1d57e9b0))
+
 ## [5.3.1](https://github.com/grekt-labs/cli-engine/compare/v5.3.0...v5.3.1) (2026-02-05)
 
 
