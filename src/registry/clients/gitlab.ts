@@ -59,13 +59,19 @@ export class GitLabRegistryClient implements RegistryClient {
 
   /**
    * Get request headers for GitLab API
+   *
+   * GitLab uses different auth headers depending on token type:
+   * - Personal Access Token (glpat-*): PRIVATE-TOKEN header
+   * - Deploy Token (gldt-*): Deploy-Token header
    */
   private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       "User-Agent": "grekt-cli",
     };
     if (this.token) {
-      headers["PRIVATE-TOKEN"] = this.token;
+      const isDeployToken = this.token.startsWith("gldt-");
+      const headerName = isDeployToken ? "Deploy-Token" : "PRIVATE-TOKEN";
+      headers[headerName] = this.token;
     }
     return headers;
   }

@@ -612,6 +612,83 @@ describe("GitLabRegistryClient", () => {
     });
   });
 
+  describe("authentication headers", () => {
+    test("uses PRIVATE-TOKEN header for personal access tokens", async () => {
+      const projectInfo = { id: 12345 };
+      let capturedHeaders: Record<string, string> = {};
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        capturedHeaders = (options?.headers as Record<string, string>) ?? {};
+        if (url.includes("/packages?")) return jsonResponse([]);
+        return jsonResponse(projectInfo);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        token: "glpat-xxxxxxxxxxxxxxxxxxxx",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(capturedHeaders["PRIVATE-TOKEN"]).toBe("glpat-xxxxxxxxxxxxxxxxxxxx");
+      expect(capturedHeaders["Deploy-Token"]).toBeUndefined();
+    });
+
+    test("uses Deploy-Token header for deploy tokens", async () => {
+      const projectInfo = { id: 12345 };
+      let capturedHeaders: Record<string, string> = {};
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        capturedHeaders = (options?.headers as Record<string, string>) ?? {};
+        if (url.includes("/packages?")) return jsonResponse([]);
+        return jsonResponse(projectInfo);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        token: "gldt-xxxxxxxxxxxxxxxxxxxx",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(capturedHeaders["Deploy-Token"]).toBe("gldt-xxxxxxxxxxxxxxxxxxxx");
+      expect(capturedHeaders["PRIVATE-TOKEN"]).toBeUndefined();
+    });
+
+    test("uses PRIVATE-TOKEN header for tokens without recognized prefix", async () => {
+      const projectInfo = { id: 12345 };
+      let capturedHeaders: Record<string, string> = {};
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        capturedHeaders = (options?.headers as Record<string, string>) ?? {};
+        if (url.includes("/packages?")) return jsonResponse([]);
+        return jsonResponse(projectInfo);
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "gitlab",
+        host: "gitlab.com",
+        project: "group/project",
+        token: "some-legacy-token",
+      };
+
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      await client.listVersions("@scope/artifact");
+
+      expect(capturedHeaders["PRIVATE-TOKEN"]).toBe("some-legacy-token");
+      expect(capturedHeaders["Deploy-Token"]).toBeUndefined();
+    });
+  });
+
   describe("getProjectId caching", () => {
     test("caches project ID after first request", async () => {
       const projectInfo = { id: 12345 };
