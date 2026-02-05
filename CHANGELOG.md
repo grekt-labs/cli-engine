@@ -1,3 +1,10 @@
+## [5.3.3](https://github.com/grekt-labs/cli-engine/compare/v5.3.2...v5.3.3) (2026-02-05)
+
+
+### Bug Fixes
+
+* **gitlab:** support Deploy Tokens for authentication ([#46](https://github.com/grekt-labs/cli-engine/issues/46)) ([97e399e](https://github.com/grekt-labs/cli-engine/commit/97e399e027b37686d36fcf3305d2ce3bbbeb62c3))
+
 ## [5.3.2](https://github.com/grekt-labs/cli-engine/compare/v5.3.1...v5.3.2) (2026-02-05)
 
 
