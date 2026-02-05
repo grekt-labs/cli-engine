@@ -49,8 +49,8 @@ export class GitLabRegistryClient implements RegistryClient {
       throw new Error("GitLab registry requires 'project' field in config");
     }
 
-    this.host = registry.host;
-    this.project = registry.project;
+    this.host = normalizeHost(registry.host);
+    this.project = normalizeProject(registry.project);
     this.token = registry.token;
     this.http = http;
     this.fs = fs;
@@ -80,10 +80,27 @@ export class GitLabRegistryClient implements RegistryClient {
     const encodedPath = encodeURIComponent(this.project);
     const url = `https://${this.host}/api/v4/projects/${encodedPath}`;
 
-    const response = await this.http.fetch(url, { headers: this.getHeaders() });
+    let response: Response;
+    try {
+      response = await this.http.fetch(url, { headers: this.getHeaders() });
+    } catch (err) {
+      throw new Error(
+        `Cannot connect to GitLab at ${this.host}. ` +
+        `Check that the host is correct and accessible.`
+      );
+    }
 
     if (!response.ok) {
-      throw new Error(`Failed to get project info: ${response.status} ${response.statusText}`);
+      if (response.status === 401) {
+        throw new Error(`GitLab authentication failed. Check your token.`);
+      }
+      if (response.status === 404) {
+        throw new Error(
+          `GitLab project not found: ${this.project}. ` +
+          `Check the project path in your registry config.`
+        );
+      }
+      throw new Error(`GitLab API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -326,4 +343,20 @@ function generateSecureTempPath(): string {
   const crypto = require("crypto");
   const uuid = crypto.randomUUID();
   return `/tmp/grekt-gitlab-${uuid}.tar.gz`;
+}
+
+/**
+ * Normalize host by removing protocol prefix if present.
+ * Users often copy full URLs like "https://gitlab.example.com" instead of just "gitlab.example.com".
+ */
+function normalizeHost(host: string): string {
+  return host.replace(/^https?:\/\//, "");
+}
+
+/**
+ * Normalize project path by removing leading slash if present.
+ * GitLab API expects "group/project", not "/group/project".
+ */
+function normalizeProject(project: string): string {
+  return project.replace(/^\//, "");
 }
