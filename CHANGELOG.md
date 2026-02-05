@@ -1,3 +1,10 @@
+## [5.5.3](https://github.com/grekt-labs/cli-engine/compare/v5.5.2...v5.5.3) (2026-02-05)
+
+
+### Bug Fixes
+
+* use HEAD request for versionExists in GitLab client ([#51](https://github.com/grekt-labs/cli-engine/issues/51)) ([6eb8c32](https://github.com/grekt-labs/cli-engine/commit/6eb8c32a557f89c68b9ddc922126de66333dd6f6))
+
 ## [5.5.2](https://github.com/grekt-labs/cli-engine/compare/v5.5.1...v5.5.2) (2026-02-05)
 
 
