@@ -15,17 +15,18 @@ cli-engine contains the pure logic extracted from the CLI:
 
 ```
 cli-engine/src/
-├── core/           # DI interfaces (FileSystem, HttpClient, etc.)
-├── categories/     # Component type definitions (agents, skills, etc.)
-├── schemas/        # Zod validation schemas
-├── formatters/     # Pure utility functions
-├── artifact/       # Parsing, scanning, naming, integrity
-├── registry/       # Resolution, download, clients
-├── sync/           # Types and constants (impl in CLI)
-├── artifactIndex/  # Index generation for lazy loading
-├── version/        # Semver utilities
-├── oci/            # OCI Distribution Spec (GHCR support)
-└── test-utils/     # Mocks for testing
+├── core/            # DI interfaces (FileSystem, HttpClient, etc.)
+├── categories/      # Component type definitions (agents, skills, etc.)
+├── schemas/         # Zod validation schemas
+├── formatters/      # Pure utility functions
+├── friendly-errors/ # Human-readable error utilities
+├── artifact/        # Parsing, scanning, naming, integrity
+├── registry/        # Resolution, download, clients
+├── sync/            # Types and constants (impl in CLI)
+├── artifactIndex/   # Index generation for lazy loading
+├── version/         # Semver utilities
+├── oci/             # OCI Distribution Spec (GHCR support)
+└── test-utils/      # Mocks for testing
 ```
 
 ## Core Interfaces (`core/`)
@@ -162,6 +163,36 @@ Pure utility functions:
 function formatBytes(bytes: number): string  // "1.5 KB"
 function estimateTokens(text: string): number
 function formatNumber(n: number): string  // "1,234"
+```
+
+## Friendly Errors (`friendly-errors/`)
+
+Standard utility for parsing user-facing config files with human-readable errors.
+
+**Always use this when parsing config files** (grekt.yaml, grekt-workspace.yaml, lockfiles).
+
+```typescript
+import { safeParseYaml } from "@grekt-labs/cli-engine";
+
+const result = safeParseYaml(content, MySchema, "grekt.yaml");
+if (!result.success) {
+  // result.error.message: "Invalid YAML syntax in grekt.yaml"
+  // result.error.details: ["Nested mappings are not allowed..."]
+}
+```
+
+Returns `ParseResult<T>` instead of throwing raw errors:
+
+```typescript
+type ParseResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: FriendlyError };
+
+interface FriendlyError {
+  type: "yaml" | "validation";
+  message: string;
+  details?: string[];
+}
 ```
 
 ## OCI (`oci/`)
