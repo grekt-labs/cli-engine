@@ -2,11 +2,23 @@ Business Source License 1.1
 
 Parameters
 
-Licensor:             Grekt
+Licensor:             grekt-labs
 Licensed Work:        grekt cli-engine
-Additional Use Grant: None
-Change Date:          January 1, 2030
-Change License:       Apache License 2.0
+                      The Licensed Work is (c) 2025-2026 grekt-labs.
+Additional Use Grant: You may make production use of the Licensed Work,
+                      provided that you do not use the Licensed Work to
+                      offer a commercial product or service that competes
+                      with any grekt product or service.
+
+                      For purposes of this license, "competes" means
+                      offering a substitute product or service whose
+                      value derives primarily from the Licensed Work.
+
+                      Individual and internal business use of the
+                      Licensed Work is always permitted.
+Change Date:          Two years from the date of each published version
+                      of the Licensed Work.
+Change License:       MIT License
 
 Terms
 
