@@ -1,3 +1,10 @@
+## [5.5.4](https://github.com/grekt-labs/cli-engine/compare/v5.5.3...v5.5.4) (2026-02-07)
+
+
+### Bug Fixes
+
+* prevent AI from modifying .grekt artifacts ([#53](https://github.com/grekt-labs/cli-engine/issues/53)) ([1818c2c](https://github.com/grekt-labs/cli-engine/commit/1818c2c33ea8852df40d180fe5fa0ad71ed7ba23))
+
 ## [5.5.3](https://github.com/grekt-labs/cli-engine/compare/v5.5.2...v5.5.3) (2026-02-05)
 
 
