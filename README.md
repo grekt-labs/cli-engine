@@ -60,4 +60,4 @@ import {
 
 ## License
 
-MIT
+[BSL 1.1](./LICENSE)
