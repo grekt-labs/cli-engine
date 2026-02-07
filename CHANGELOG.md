@@ -1,3 +1,10 @@
+## [5.5.5](https://github.com/grekt-labs/cli-engine/compare/v5.5.4...v5.5.5) (2026-02-07)
+
+
+### Bug Fixes
+
+* correct license reference in README to BSL 1.1 ([cef1c9c](https://github.com/grekt-labs/cli-engine/commit/cef1c9c6be484e564b01b919526368a987a58d39))
+
 ## [5.5.4](https://github.com/grekt-labs/cli-engine/compare/v5.5.3...v5.5.4) (2026-02-07)
 
 
