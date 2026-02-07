@@ -48,6 +48,7 @@ export const ArtifactManifestSchema = z.object({
   version: SemverSchema,
   description: z.string(),
   keywords: KeywordsSchema.optional(),
+  private: z.boolean().optional(),
   components: ComponentsSchema, // Auto-generated during publish/pack
 });
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
