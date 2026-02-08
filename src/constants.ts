@@ -5,8 +5,9 @@
 export const REGISTRY_HOST = "registry.grekt.com";
 export const REGISTRY_URL = `https://${REGISTRY_HOST}`;
 
-// Base path for the registry REST API (edge functions endpoint)
-export const DEFAULT_REGISTRY_API_PATH = "/functions/v1";
+// Base path for the registry REST API.
+// Empty because registry.grekt.com is a Worker that already proxies to the edge functions.
+export const DEFAULT_REGISTRY_API_PATH = "";
 
 // Regex to parse artifact ID: @scope/name or scope/name
 // Scope and name: lowercase alphanumeric with hyphens (not at start/end)
