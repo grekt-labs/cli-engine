@@ -1,3 +1,10 @@
+## [5.7.1](https://github.com/grekt-labs/cli-engine/compare/v5.7.0...v5.7.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* use publishedAt instead of createdAt in API version response ([3335caf](https://github.com/grekt-labs/cli-engine/commit/3335caff2ad61613e4eaa7ad033caa59e1c15914))
+
 # [5.7.0](https://github.com/grekt-labs/cli-engine/compare/v5.6.0...v5.7.0) (2026-02-08)
 
 
