@@ -11,8 +11,8 @@ import {
 import type { ResolvedRegistry } from "../registry.types";
 import { REGISTRY_HOST } from "#/constants";
 
-const API_BASE_PATH = "/functions/v1";
-const API_BASE = `https://${REGISTRY_HOST}${API_BASE_PATH}`;
+const API_BASE_PATH = "";
+const API_BASE = `https://${REGISTRY_HOST}`;
 
 /**
  * Helper to build an API artifact response matching the edge function shape
