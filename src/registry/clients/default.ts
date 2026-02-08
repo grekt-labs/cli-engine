@@ -23,7 +23,7 @@ import { sortVersionsDesc, getHighestVersion } from "#/version";
  */
 interface ApiVersionEntry {
   version: string;
-  createdAt: string;
+  publishedAt: string;
   downloads: number;
   deprecated: string | null;
 }
@@ -297,7 +297,7 @@ export class DefaultRegistryClient implements RegistryClient {
       return {
         version: ver,
         deprecated: entry?.deprecated || undefined,
-        publishedAt: entry?.createdAt,
+        publishedAt: entry?.publishedAt,
       };
     });
 

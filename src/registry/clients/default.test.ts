@@ -24,7 +24,7 @@ function buildArtifactResponse(overrides: {
 } = {}) {
   const versions = (overrides.versions ?? [{ version: "1.0.0" }]).map(v => ({
     version: v.version,
-    createdAt: "2024-01-01T00:00:00Z",
+    publishedAt: "2024-01-01T00:00:00Z",
     downloads: 0,
     deprecated: v.deprecated ?? null,
   }));
