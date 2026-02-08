@@ -1,3 +1,10 @@
+# [5.7.0](https://github.com/grekt-labs/cli-engine/compare/v5.6.0...v5.7.0) (2026-02-08)
+
+
+### Features
+
+* support full URL override in DefaultRegistryClient ([e3bb26f](https://github.com/grekt-labs/cli-engine/commit/e3bb26f98e42c63da0223df23eb5f54b9451a470))
+
 # [5.6.0](https://github.com/grekt-labs/cli-engine/compare/v5.5.6...v5.6.0) (2026-02-08)
 
 
