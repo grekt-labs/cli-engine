@@ -1,3 +1,15 @@
+# [5.6.0](https://github.com/grekt-labs/cli-engine/compare/v5.5.6...v5.6.0) (2026-02-08)
+
+
+### Bug Fixes
+
+* remove /functions/v1 from API base path ([44e69db](https://github.com/grekt-labs/cli-engine/commit/44e69db63636102a29f3355780b9628d8812acd7))
+
+
+### Features
+
+* rewrite DefaultRegistryClient to use REST API ([358b5a2](https://github.com/grekt-labs/cli-engine/commit/358b5a22f3d0d5aeff555cea51fd1cd91f0218a8))
+
 ## [5.5.6](https://github.com/grekt-labs/cli-engine/compare/v5.5.5...v5.5.6) (2026-02-07)
 
 
