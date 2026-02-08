@@ -2,11 +2,11 @@
  * Default registry client
  *
  * Implementation for the public registry.grekt.com.
- * Uses simple HTTP fetches to download artifacts and metadata.
+ * Fetches metadata and tarballs via REST API endpoints (edge functions).
+ * Zero dependency on any specific backend — just HTTP.
  */
 
 import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
-import type { ArtifactMetadata } from "#/schemas";
 import type {
   RegistryClient,
   ResolvedRegistry,
@@ -18,8 +18,42 @@ import type {
 import { hashDirectory, calculateIntegrity } from "#/artifact";
 import { sortVersionsDesc, getHighestVersion } from "#/version";
 
+/**
+ * Shape of a version entry returned by the artifact API endpoint
+ */
+interface ApiVersionEntry {
+  version: string;
+  createdAt: string;
+  downloads: number;
+  deprecated: string | null;
+}
+
+/**
+ * Shape of the artifact API response
+ */
+interface ApiArtifactResponse {
+  id: string;
+  description: string;
+  keywords: string[];
+  isPublic: boolean;
+  owner: { type: "user" | "org"; name: string };
+  versions: ApiVersionEntry[];
+  totalDownloads: number;
+  createdAt: string;
+}
+
+/**
+ * Shape of the download API response (JSON mode)
+ */
+interface ApiDownloadResponse {
+  url: string;
+  deprecated: string | null;
+}
+
 export class DefaultRegistryClient implements RegistryClient {
   private host: string;
+  private apiBasePath: string;
+  private token?: string;
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
@@ -31,29 +65,46 @@ export class DefaultRegistryClient implements RegistryClient {
     shell: ShellExecutor
   ) {
     this.host = registry.host;
+    this.apiBasePath = registry.apiBasePath || "";
+    this.token = registry.token;
     this.http = http;
     this.fs = fs;
     this.shell = shell;
   }
 
-  private getBaseUrl(): string {
-    return `https://${this.host}`;
+  private getApiUrl(): string {
+    return `https://${this.host}${this.apiBasePath}`;
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (this.token) {
+      headers["Authorization"] = `Bearer ${this.token}`;
+    }
+    return headers;
   }
 
   /**
-   * Fetch artifact metadata from registry
+   * Fetch artifact metadata from registry REST API
    */
-  private async fetchMetadata(artifactId: string): Promise<{ data: ArtifactMetadata | null; error?: string }> {
-    const metadataUrl = `${this.getBaseUrl()}/${artifactId}/metadata.json`;
+  private async fetchMetadata(artifactId: string): Promise<{ data: ApiArtifactResponse | null; error?: string }> {
+    const url = `${this.getApiUrl()}/artifact?id=${encodeURIComponent(artifactId)}`;
 
     try {
-      const response = await this.http.fetch(metadataUrl);
+      const response = await this.http.fetch(url, {
+        headers: this.getAuthHeaders(),
+      });
+
       if (!response.ok) {
+        if (response.status === 404) {
+          return { data: null, error: `Artifact not found: ${artifactId}` };
+        }
         return {
           data: null,
-          error: `Failed to fetch metadata: ${response.status} ${response.statusText}`
+          error: `Failed to fetch metadata: ${response.status} ${response.statusText}`,
         };
       }
+
       return { data: await response.json() };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
@@ -61,35 +112,95 @@ export class DefaultRegistryClient implements RegistryClient {
     }
   }
 
+  /**
+   * Build a stable resolved URL for the lockfile.
+   * Public artifacts get a direct R2 URL, private get a canonical API URL.
+   */
+  private buildResolvedUrl(artifactId: string, version: string, downloadUrl: string, isPublic: boolean): string {
+    // For public artifacts, the download URL from the API is a stable R2 public URL
+    if (isPublic && !downloadUrl.includes("X-Amz-Signature")) {
+      return downloadUrl;
+    }
+
+    // For private artifacts, store a canonical API URL (not the signed URL which expires)
+    return `${this.getApiUrl()}/download?artifact=${encodeURIComponent(artifactId)}&version=${encodeURIComponent(version)}`;
+  }
+
   async download(
     artifactId: string,
     version: string | undefined,
     targetDir: string
   ): Promise<DownloadResult> {
-    const { data: metadata, error: metadataError } = await this.fetchMetadata(artifactId);
-    if (!metadata) {
-      return { success: false, error: metadataError || `Artifact not found: ${artifactId}` };
+    // Resolve version if not specified
+    let resolvedVersion = version;
+    if (!resolvedVersion) {
+      const { data: metadata, error: metadataError } = await this.fetchMetadata(artifactId);
+      if (!metadata) {
+        return { success: false, error: metadataError || `Artifact not found: ${artifactId}` };
+      }
+      const versionStrings = metadata.versions.map(v => v.version);
+      resolvedVersion = getHighestVersion(versionStrings) ?? undefined;
+      if (!resolvedVersion) {
+        return { success: false, error: "No versions available for this artifact" };
+      }
     }
 
-    const resolvedVersion = version || metadata.latest;
-    const tarballUrl = `${this.getBaseUrl()}/${artifactId}/${resolvedVersion}.tar.gz`;
-    const deprecationMessage = metadata.deprecated[resolvedVersion];
-
     try {
-      const response = await this.http.fetch(tarballUrl);
+      // Get download URL from API
+      const downloadApiUrl = `${this.getApiUrl()}/download?artifact=${encodeURIComponent(artifactId)}&version=${encodeURIComponent(resolvedVersion)}`;
+
+      const response = await this.http.fetch(downloadApiUrl, {
+        headers: {
+          ...this.getAuthHeaders(),
+          "Accept": "application/json",
+        },
+      });
+
       if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        const errorCode = errorBody?.code;
+
+        if (response.status === 404) {
+          if (errorCode === "ARTIFACT_NOT_FOUND") {
+            return { success: false, error: `Artifact not found: ${artifactId}` };
+          }
+          if (errorCode === "VERSION_NOT_FOUND") {
+            return { success: false, error: `Version ${resolvedVersion} not found` };
+          }
+          if (errorCode === "FILE_NOT_FOUND") {
+            return { success: false, error: "Artifact file not found in storage" };
+          }
+          return { success: false, error: errorBody?.error || "Not found" };
+        }
+
+        if (response.status === 429) {
+          return { success: false, error: "Rate limited. Please try again later." };
+        }
+
         return {
           success: false,
-          error: `Failed to download tarball: ${response.status} ${response.statusText}`
+          error: errorBody?.error || `Registry returned ${response.status}`,
         };
       }
 
-      const buffer = await response.arrayBuffer();
+      const downloadData: ApiDownloadResponse = await response.json();
+      const tarballUrl = downloadData.url;
+      const deprecationMessage = downloadData.deprecated || undefined;
+
+      // Download the actual tarball
+      const tarballResponse = await this.http.fetch(tarballUrl);
+      if (!tarballResponse.ok) {
+        return {
+          success: false,
+          error: `Failed to download tarball: ${tarballResponse.status} ${tarballResponse.statusText}`,
+        };
+      }
+
+      const buffer = await tarballResponse.arrayBuffer();
       const tempTarball = generateSecureTempPath();
       this.fs.writeFileBinary(tempTarball, Buffer.from(buffer));
 
       // Validate tarball contents BEFORE extraction (prevents path traversal)
-      // stripComponents=1 matches the extraction below
       const validation = validateTarballContents(this.shell, tempTarball, targetDir, 1);
       if (!validation.safe) {
         this.fs.unlink(tempTarball);
@@ -114,10 +225,14 @@ export class DefaultRegistryClient implements RegistryClient {
       const fileHashes = hashDirectory(this.fs, targetDir);
       const integrity = calculateIntegrity(fileHashes);
 
+      // Determine if artifact is public by checking if we got a non-signed URL
+      const isPublic = !tarballUrl.includes("X-Amz-Signature");
+      const resolved = this.buildResolvedUrl(artifactId, resolvedVersion, tarballUrl, isPublic);
+
       return {
         success: true,
         version: resolvedVersion,
-        resolved: tarballUrl,
+        resolved,
         deprecationMessage,
         integrity,
         fileHashes,
@@ -143,55 +258,51 @@ export class DefaultRegistryClient implements RegistryClient {
 
   async getLatestVersion(artifactId: string): Promise<string | null> {
     const { data: metadata } = await this.fetchMetadata(artifactId);
-    return metadata?.latest ?? null;
+    if (!metadata) return null;
+    const versionStrings = metadata.versions.map(v => v.version);
+    return getHighestVersion(versionStrings) ?? null;
   }
 
   async versionExists(artifactId: string, version: string): Promise<boolean> {
     const { data: metadata } = await this.fetchMetadata(artifactId);
     if (!metadata) return false;
-
-    // Check if version exists by trying to fetch it
-    const tarballUrl = `${this.getBaseUrl()}/${artifactId}/${version}.tar.gz`;
-    try {
-      const response = await this.http.fetch(tarballUrl, { method: "HEAD" });
-      return response.ok;
-    } catch (err) {
-      // HEAD request failed - version doesn't exist or network error
-      return false;
-    }
+    return metadata.versions.some(v => v.version === version);
   }
 
   async listVersions(artifactId: string): Promise<string[]> {
     const { data: metadata } = await this.fetchMetadata(artifactId);
-    if (!metadata?.versions) {
-      return [];
-    }
-
-    // Sort by semver descending (highest version first)
-    return sortVersionsDesc(metadata.versions);
+    if (!metadata) return [];
+    const versionStrings = metadata.versions.map(v => v.version);
+    return sortVersionsDesc(versionStrings);
   }
 
   async getArtifactInfo(artifactId: string): Promise<RegistryArtifactInfo | null> {
     const { data: metadata } = await this.fetchMetadata(artifactId);
-    if (!metadata) {
-      return null;
+    if (!metadata) return null;
+
+    const versionStrings = metadata.versions.map(v => v.version);
+    const sortedVersions = sortVersionsDesc(versionStrings);
+
+    // Build a lookup map for version details
+    const versionMap = new Map<string, ApiVersionEntry>();
+    for (const v of metadata.versions) {
+      versionMap.set(v.version, v);
     }
 
-    const sortedVersions = metadata.versions
-      ? sortVersionsDesc(metadata.versions)
-      : [];
-
-    const versions: VersionInfo[] = sortedVersions.map(version => ({
-      version,
-      deprecated: metadata.deprecated[version],
-    }));
+    const versions: VersionInfo[] = sortedVersions.map(ver => {
+      const entry = versionMap.get(ver);
+      return {
+        version: ver,
+        deprecated: entry?.deprecated || undefined,
+        publishedAt: entry?.createdAt,
+      };
+    });
 
     return {
-      artifactId: metadata.name,
-      latestVersion: getHighestVersion(sortedVersions) ?? metadata.latest,
+      artifactId: metadata.id,
+      latestVersion: getHighestVersion(sortedVersions) ?? sortedVersions[0] ?? "",
       versions,
       createdAt: metadata.createdAt,
-      updatedAt: metadata.updatedAt,
     };
   }
 }
@@ -204,4 +315,3 @@ function generateSecureTempPath(): string {
   const uuid = crypto.randomUUID();
   return `/tmp/grekt-${uuid}.tar.gz`;
 }
-

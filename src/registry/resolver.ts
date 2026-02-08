@@ -7,7 +7,7 @@
 
 import type { TokenProvider } from "#/core";
 import type { LocalConfig, ResolvedRegistry, RegistryType } from "./registry.types";
-import { ARTIFACT_ID_REGEX, REGISTRY_HOST } from "#/constants";
+import { ARTIFACT_ID_REGEX, REGISTRY_HOST, DEFAULT_REGISTRY_API_PATH } from "#/constants";
 
 const DEFAULT_REGISTRY_HOST = REGISTRY_HOST;
 
@@ -82,10 +82,13 @@ export function resolveRegistry(
   const entry = localConfig?.registries?.[scope];
 
   if (!entry) {
-    // No config for scope → use public registry
+    // No config for scope → use public registry with API path
+    const registryToken = tokens?.getRegistryToken(scope);
     return {
       type: "default",
       host: DEFAULT_REGISTRY_HOST,
+      apiBasePath: DEFAULT_REGISTRY_API_PATH,
+      token: registryToken,
     };
   }
 
@@ -97,6 +100,8 @@ export function resolveRegistry(
       token = tokens.getGitToken("gitlab", entry.host);
     } else if (entry.type === "github") {
       token = tokens.getGitToken("github", entry.host);
+    } else if (entry.type === "default") {
+      token = tokens.getRegistryToken(scope);
     }
   }
 
@@ -106,6 +111,7 @@ export function resolveRegistry(
     project: entry.project,
     token,
     prefix: entry.prefix,
+    apiBasePath: entry.type === "default" ? DEFAULT_REGISTRY_API_PATH : undefined,
   };
 }
 

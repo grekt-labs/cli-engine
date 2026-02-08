@@ -21,6 +21,7 @@ export interface ResolvedRegistry {
   project?: string;
   token?: string;
   prefix?: string; // Package name prefix (e.g., "frontend" → "frontend-artifact-name")
+  apiBasePath?: string; // REST API base path for default registry (e.g., "/functions/v1")
 }
 
 /**
