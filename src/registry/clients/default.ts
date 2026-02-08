@@ -73,6 +73,9 @@ export class DefaultRegistryClient implements RegistryClient {
   }
 
   private getApiUrl(): string {
+    if (this.apiBasePath.startsWith("http")) {
+      return this.apiBasePath;
+    }
     return `https://${this.host}${this.apiBasePath}`;
   }
 

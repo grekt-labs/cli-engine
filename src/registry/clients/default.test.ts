@@ -45,12 +45,13 @@ describe("DefaultRegistryClient", () => {
   const createClient = (
     host = REGISTRY_HOST,
     httpResponses = new Map<string, Response>(),
-    token?: string
+    token?: string,
+    apiBasePath = API_BASE_PATH
   ) => {
     const registry: ResolvedRegistry = {
       type: "default",
       host,
-      apiBasePath: API_BASE_PATH,
+      apiBasePath,
       token,
     };
     const http = createMockHttpClient(httpResponses);
@@ -425,6 +426,49 @@ describe("DefaultRegistryClient", () => {
       const result = await client.getArtifactInfo("@scope/artifact");
 
       expect(result!.latestVersion).toBe("5.0.0");
+    });
+  });
+
+  describe("apiBasePath full URL override", () => {
+    test("uses full URL when apiBasePath starts with http", async () => {
+      const localBase = "http://localhost:54321/functions/v1";
+      const artifactResponse = buildArtifactResponse({
+        versions: [{ version: "1.0.0" }],
+      });
+
+      const { client } = createClient(
+        "",
+        new Map([
+          [`${localBase}/artifact?id=%40scope%2Fartifact`, jsonResponse(artifactResponse)],
+        ]),
+        undefined,
+        localBase
+      );
+
+      const result = await client.getLatestVersion("@scope/artifact");
+
+      expect(result).toBe("1.0.0");
+    });
+
+    test("downloads via full URL override", async () => {
+      const localBase = "http://localhost:54321/functions/v1";
+      const tarballUrl = "http://localhost:54321/storage/artifacts/1.0.0.tar.gz";
+      const tarballData = Buffer.from("fake-tarball");
+
+      const { client } = createClient(
+        "",
+        new Map([
+          [`${localBase}/download?artifact=%40scope%2Fartifact&version=1.0.0`, jsonResponse({ url: tarballUrl, deprecated: null })],
+          [tarballUrl, binaryResponse(tarballData)],
+        ]),
+        undefined,
+        localBase
+      );
+
+      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+
+      expect(result.success).toBe(true);
+      expect(result.version).toBe("1.0.0");
     });
   });
 });
