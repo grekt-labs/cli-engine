@@ -1,3 +1,10 @@
+## [5.8.1](https://github.com/grekt-labs/cli-engine/compare/v5.8.0...v5.8.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* trigger release ([15ba356](https://github.com/grekt-labs/cli-engine/commit/15ba356424a7c14ff1b1017e379d82e7f2e611f5))
+
 # [5.8.0](https://github.com/grekt-labs/cli-engine/compare/v5.7.1...v5.8.0) (2026-02-09)
 
 
