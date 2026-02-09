@@ -50,6 +50,9 @@ export interface SyncPlugin {
 
   /** Get target paths for cleanup. Null if not applicable. */
   getTargetPaths(): TargetPaths | null;
+
+  /** Optional one-time setup when target is first configured (e.g., create skill router) */
+  setup?(projectRoot: string): void;
 }
 
 /** Paths associated with a target for cleanup */
@@ -67,6 +70,8 @@ export interface FolderPluginConfig {
   paths?: Partial<ComponentPaths>;
   generateRulesContent?: (lockfile: Lockfile) => string;
   getTargetPath?: (artifactId: string, category: string, filePath: string) => string | null;
+  /** Optional setup function called when target is first configured */
+  setup?: (projectRoot: string) => void;
 }
 
 /** Configuration for rules-only plugins */
