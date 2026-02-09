@@ -4,10 +4,10 @@ import type { IndexGeneratorInput, SerializeIndexOptions } from "./artifactIndex
 import { GREKT_UNTRUSTED_START, GREKT_UNTRUSTED_END } from "#/sync";
 
 /** Instructions block to reinforce artifact usage on every request */
-const INSTRUCTIONS_BLOCK = `<instructions>On every new user request, check this index for matching artifacts before proceeding. Announce which artifact you will use (e.g., "Using @grekt/tools for this task"). If no artifact matches, proceed normally.</instructions>`;
+const INSTRUCTIONS_BLOCK = `<instructions>On every new user request, check this index for matching artifacts. If a match is found, announce it once (e.g., "Using <artifact-id> for this task") and follow the artifact. If multiple artifacts match, ASK which one to use. Read the full index before deciding — do not skip entries.</instructions>`;
 
 /** Terminology block for AIs to understand artifact types and grk-types */
-const TERMINOLOGY_BLOCK = `<terminology>Artifacts help you assist the user. Match keywords below to find the relevant artifact, then: 1) Glob .grekt/artifacts/<artifact-id>/**/*.md to list available files. 2) If a filename clearly matches the user's need (e.g., publishing-flow.md for "how to publish"), read it directly. 3) If unclear which file to read, consult grekt.yaml for the component mapping. Each file has a grk-type field: agents (autonomous specialists), skills (reusable capabilities), commands (user-invoked actions).</terminology>`;
+const TERMINOLOGY_BLOCK = `<terminology>Match keywords below to find the relevant artifact, then: 1) Glob .grekt/artifacts/<artifact-id>/**/*.md to discover files. 2) If a filename clearly matches, read it directly. 3) If unclear, check the artifact's grekt.yaml for file descriptions and mappings. Files include a grk-type field that indicates the type of tool (e.g., agent, skill, command).</terminology>`;
 
 /**
  * Generate an artifact index from a list of artifacts.
