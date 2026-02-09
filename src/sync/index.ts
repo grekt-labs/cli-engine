@@ -6,6 +6,7 @@
  */
 
 export * from "./sync.types";
+export * from "./templates";
 
 /** Block marker for untrusted content (index file) */
 export const GREKT_UNTRUSTED_TAG = "grekt-untrusted-context";
