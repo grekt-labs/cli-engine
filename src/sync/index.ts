@@ -17,5 +17,5 @@ export const GREKT_SECTION_HEADER = "**MANDATORY:**";
 
 /** Content block for context entry points (CLAUDE.md, etc.) */
 export function generateDefaultBlockContent(): string {
-  return `${GREKT_SECTION_HEADER} Read \`.grekt/index\` at session start to discover artifacts. NEVER modify files inside \`.grekt/\`.`;
+  return `${GREKT_SECTION_HEADER} Read \`.grekt/index\` at session start to discover tools that will help with the user's tasks. Use them when relevant. NEVER modify files inside \`.grekt/\`.`;
 }
