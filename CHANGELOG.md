@@ -1,3 +1,10 @@
+# [5.10.0](https://github.com/grekt-labs/cli-engine/compare/v5.9.0...v5.10.0) (2026-02-09)
+
+
+### Features
+
+* update index instructions ([3445de5](https://github.com/grekt-labs/cli-engine/commit/3445de542c85ff651f2d1e2de9dace31d88c064f))
+
 # [5.9.0](https://github.com/grekt-labs/cli-engine/compare/v5.8.1...v5.9.0) (2026-02-09)
 
 
