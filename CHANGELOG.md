@@ -1,3 +1,10 @@
+## [5.11.1](https://github.com/grekt-labs/cli-engine/compare/v5.11.0...v5.11.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* embed skill-router template for bundle compatibility ([#64](https://github.com/grekt-labs/cli-engine/issues/64)) ([454fd23](https://github.com/grekt-labs/cli-engine/commit/454fd2305ea81a6bd3f231dadbe18ef3ec4ac568))
+
 # [5.11.0](https://github.com/grekt-labs/cli-engine/compare/v5.10.0...v5.11.0) (2026-02-09)
 
 
