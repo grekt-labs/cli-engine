@@ -5,13 +5,9 @@
  * Each plugin wraps these with its own format (frontmatter, file naming, etc.).
  */
 
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const DIST_DIR = dirname(fileURLToPath(import.meta.url));
+import skillRouterContent from "./skill-router.md" with { type: "text" };
 
 /** Body of the skill router template (no frontmatter) */
 export function getSkillRouterTemplate(): string {
-  return readFileSync(join(DIST_DIR, "skill-router.md"), "utf-8");
+  return skillRouterContent;
 }

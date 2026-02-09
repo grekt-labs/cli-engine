@@ -18,7 +18,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun run typecheck && bun build src/index.ts --outdir dist --target node && cp src/sync/templates/skill-router.md dist/ && tsc --emitDeclarationOnly && tsc-alias",
+    "build": "bun run typecheck && bun build src/index.ts --outdir dist --target node && tsc --emitDeclarationOnly && tsc-alias",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
