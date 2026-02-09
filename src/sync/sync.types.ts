@@ -5,6 +5,7 @@
  */
 
 import type { Lockfile, ProjectConfig, ComponentPaths } from "#/schemas";
+import type { Category } from "#/categories";
 
 export interface SyncResult {
   created: string[];
@@ -43,6 +44,18 @@ export interface SyncPlugin {
 
   /** Preview what would be synced (dry run) */
   preview(lockfile: Lockfile, projectRoot: string, options?: SyncOptions): SyncPreview;
+
+  /** Get sync paths for each category (where files are copied to). Null for rules-only plugins. */
+  getSyncPaths(): Record<Category, string> | null;
+
+  /** Get target paths for cleanup. Null if not applicable. */
+  getTargetPaths(): TargetPaths | null;
+}
+
+/** Paths associated with a target for cleanup */
+export interface TargetPaths {
+  targetDir: string;
+  entryPoints: string[];
 }
 
 /** Configuration for folder-based plugins */
@@ -50,7 +63,7 @@ export interface FolderPluginConfig {
   id: string;
   name: string;
   targetDir: string;
-  contextEntryPoint?: string;
+  entryPoints?: string[];
   paths?: Partial<ComponentPaths>;
   generateRulesContent?: (lockfile: Lockfile) => string;
   getTargetPath?: (artifactId: string, category: string, filePath: string) => string | null;
@@ -60,7 +73,7 @@ export interface FolderPluginConfig {
 export interface RulesOnlyPluginConfig {
   id: string;
   name: string;
-  contextEntryPoint: string;
+  entryPoints: string[];
   generateRulesContent: (lockfile: Lockfile) => string;
 }
 
