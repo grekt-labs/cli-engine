@@ -1,3 +1,10 @@
+# [5.9.0](https://github.com/grekt-labs/cli-engine/compare/v5.8.1...v5.9.0) (2026-02-09)
+
+
+### Features
+
+* add entryPoints array and plugin self-description methods ([7a7efff](https://github.com/grekt-labs/cli-engine/commit/7a7efff2d3896f094b51c40436809db707cb80f3))
+
 ## [5.8.1](https://github.com/grekt-labs/cli-engine/compare/v5.8.0...v5.8.1) (2026-02-09)
 
 
