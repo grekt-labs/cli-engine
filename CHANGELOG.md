@@ -1,3 +1,10 @@
+# [5.11.0](https://github.com/grekt-labs/cli-engine/compare/v5.10.0...v5.11.0) (2026-02-09)
+
+
+### Features
+
+* **sync:** add setup() to SyncPlugin and skill router template ([3534111](https://github.com/grekt-labs/cli-engine/commit/353411140f00685760529e480824a84cd9e254f7))
+
 # [5.10.0](https://github.com/grekt-labs/cli-engine/compare/v5.9.0...v5.10.0) (2026-02-09)
 
 
