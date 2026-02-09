@@ -1,3 +1,10 @@
+# [5.8.0](https://github.com/grekt-labs/cli-engine/compare/v5.7.1...v5.8.0) (2026-02-09)
+
+
+### Features
+
+* improve artifact discovery and usage instructions ([#59](https://github.com/grekt-labs/cli-engine/issues/59)) ([c1dc1b8](https://github.com/grekt-labs/cli-engine/commit/c1dc1b8c2a1d65654966284c6a338c9e836d565b))
+
 ## [5.7.1](https://github.com/grekt-labs/cli-engine/compare/v5.7.0...v5.7.1) (2026-02-08)
 
 
