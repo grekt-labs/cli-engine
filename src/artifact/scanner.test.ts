@@ -259,6 +259,131 @@ grk-name: Has name
       expect(noDesc!.missingFields).toContain("grk-description");
     });
 
+    test("finds hook JSON file", () => {
+      const manifest = {
+        name: "@scope/test",
+        version: "1.0.0",
+        description: "desc",
+      };
+      const hookJson = JSON.stringify({
+        "grk-type": "hooks",
+        "grk-name": "format-on-save",
+        "grk-description": "Auto-format files after edit",
+        target: "claude",
+        events: {
+          PostToolUse: [
+            {
+              matcher: "Edit|Write",
+              hooks: [{ type: "command", command: "./format.sh" }],
+            },
+          ],
+        },
+      });
+
+      const fs = createMockFileSystem({
+        "/artifact/grekt.yaml": stringify(manifest),
+        "/artifact/hooks/format-on-save.json": hookJson,
+      });
+
+      const result = scanArtifact(fs, "/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.hooks).toHaveLength(1);
+      expect(result!.hooks[0].path).toBe("hooks/format-on-save.json");
+      expect(result!.hooks[0].parsed.frontmatter["grk-type"]).toBe("hooks");
+      expect(result!.hooks[0].parsed.frontmatter["grk-name"]).toBe("format-on-save");
+    });
+
+    test("parses hook JSON content without grk-* metadata fields", () => {
+      const manifest = {
+        name: "@scope/test",
+        version: "1.0.0",
+        description: "desc",
+      };
+      const hookJson = JSON.stringify({
+        "grk-type": "hooks",
+        "grk-name": "lint-hook",
+        "grk-description": "Run linter on save",
+        target: "claude",
+        events: { PostToolUse: [] },
+      });
+
+      const fs = createMockFileSystem({
+        "/artifact/grekt.yaml": stringify(manifest),
+        "/artifact/hooks/lint.json": hookJson,
+      });
+
+      const result = scanArtifact(fs, "/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.hooks).toHaveLength(1);
+
+      const content = result!.hooks[0].parsed.content as Record<string, unknown>;
+      expect(content.target).toBe("claude");
+      expect(content.events).toBeDefined();
+      // grk-* fields should be stripped from content
+      expect(content["grk-type"]).toBeUndefined();
+      expect(content["grk-name"]).toBeUndefined();
+      expect(content["grk-description"]).toBeUndefined();
+    });
+
+    test("ignores hook type in MD file (hooks are JSON-only)", () => {
+      const manifest = {
+        name: "@scope/test",
+        version: "1.0.0",
+        description: "desc",
+      };
+      const hookMd = `---
+grk-type: hooks
+grk-name: Bad Hook
+grk-description: Hooks cannot be markdown
+---
+# This should be ignored`;
+
+      const fs = createMockFileSystem({
+        "/artifact/grekt.yaml": stringify(manifest),
+        "/artifact/hooks/bad.md": hookMd,
+      });
+
+      const result = scanArtifact(fs, "/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.hooks).toHaveLength(0);
+    });
+
+    test("finds hooks alongside other component types", () => {
+      const manifest = {
+        name: "@scope/mixed",
+        version: "1.0.0",
+        description: "Mixed artifact",
+      };
+      const agent = `---
+grk-type: agents
+grk-name: My Agent
+grk-description: An agent
+---
+# Agent`;
+      const hookJson = JSON.stringify({
+        "grk-type": "hooks",
+        "grk-name": "my-hook",
+        "grk-description": "A hook",
+        target: "claude",
+        events: {},
+      });
+
+      const fs = createMockFileSystem({
+        "/artifact/grekt.yaml": stringify(manifest),
+        "/artifact/agent.md": agent,
+        "/artifact/hooks/hook.json": hookJson,
+      });
+
+      const result = scanArtifact(fs, "/artifact");
+
+      expect(result).not.toBeNull();
+      expect(result!.agents).toHaveLength(1);
+      expect(result!.hooks).toHaveLength(1);
+    });
+
     test("handles complete artifact structure", () => {
       const manifest = {
         name: "@grekt/complete-artifact",

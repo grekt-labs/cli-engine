@@ -5,7 +5,7 @@
  * Add new categories here and they propagate everywhere.
  */
 
-export const CATEGORIES = ["agents", "skills", "commands", "mcps", "rules"] as const;
+export const CATEGORIES = ["agents", "skills", "commands", "mcps", "rules", "hooks"] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 
@@ -23,6 +23,7 @@ export const CATEGORY_CONFIG: Record<Category, CategoryConfig> = {
   commands: { singular: "command", defaultPath: "commands", allowedFormats: ["md"] },
   mcps: { singular: "mcp", defaultPath: "mcps", allowedFormats: ["json"] },
   rules: { singular: "rule", defaultPath: "rules", allowedFormats: ["md"] },
+  hooks: { singular: "hook", defaultPath: "hooks", allowedFormats: ["json"] },
 };
 
 export function isValidCategory(value: string): value is Category {
