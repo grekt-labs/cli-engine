@@ -74,7 +74,7 @@ describe("DefaultRegistryClient", () => {
         ])
       );
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.version).toBe("1.0.0");
@@ -99,7 +99,7 @@ describe("DefaultRegistryClient", () => {
         ])
       );
 
-      const result = await client.download("@scope/artifact", undefined, "/target");
+      const result = await client.download("@scope/artifact", { targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.version).toBe("2.0.0");
@@ -120,7 +120,7 @@ describe("DefaultRegistryClient", () => {
         ])
       );
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.deprecationMessage).toBe("This version has security issues, please upgrade");
@@ -137,7 +137,7 @@ describe("DefaultRegistryClient", () => {
         ])
       );
 
-      const result = await client.download("@scope/missing", "1.0.0", "/target");
+      const result = await client.download("@scope/missing", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("not found");
@@ -154,7 +154,7 @@ describe("DefaultRegistryClient", () => {
         ])
       );
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("500");
@@ -173,7 +173,7 @@ describe("DefaultRegistryClient", () => {
         "test-token"
       );
 
-      const result = await client.download("@scope/private", "1.0.0", "/target");
+      const result = await client.download("@scope/private", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       // Private artifact: resolved URL should be the canonical API URL, not the signed URL
@@ -195,7 +195,7 @@ describe("DefaultRegistryClient", () => {
       // Simulate extracted files
       fs.files.set("/target/agent.md", { content: "# Agent", isDirectory: false });
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.integrity).toMatch(/^sha256:/);
@@ -207,7 +207,7 @@ describe("DefaultRegistryClient", () => {
     test("returns error indicating authentication required", async () => {
       const { client } = createClient();
 
-      const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("login");
@@ -465,7 +465,7 @@ describe("DefaultRegistryClient", () => {
         localBase
       );
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.version).toBe("1.0.0");

@@ -123,10 +123,10 @@ export class GitLabRegistryClient implements RegistryClient {
 
   async download(
     artifactId: string,
-    version: string | undefined,
-    targetDir: string
+    options: { version?: string; targetDir: string }
   ): Promise<DownloadResult> {
     try {
+      const { version, targetDir } = options;
       const packageName = this.getPackageName(artifactId);
       const encodedPackageName = encodeURIComponent(packageName);
 
@@ -204,10 +204,10 @@ export class GitLabRegistryClient implements RegistryClient {
   }
 
   async publish(
-    artifactId: string,
-    version: string,
-    tarballPath: string
+    options: { artifactId: string; version: string; tarballPath: string }
   ): Promise<PublishResult> {
+    const { artifactId, version, tarballPath } = options;
+
     if (!this.token) {
       return {
         success: false,
