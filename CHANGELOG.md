@@ -1,3 +1,10 @@
+## [5.12.1](https://github.com/grekt-labs/cli-engine/compare/v5.12.0...v5.12.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* convert RegistryClient download/publish to options objects ([#66](https://github.com/grekt-labs/cli-engine/issues/66)) ([ab59d27](https://github.com/grekt-labs/cli-engine/commit/ab59d2712c66951347720b373bcb6caf355264b6))
+
 # [5.12.0](https://github.com/grekt-labs/cli-engine/compare/v5.11.1...v5.12.0) (2026-02-10)
 
 
