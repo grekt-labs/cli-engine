@@ -180,7 +180,7 @@ describe("GitHubRegistryClient", () => {
       };
 
       const client = new GitHubRegistryClient(registry, http, fs, shell);
-      const result = await client.download("@scope/utils", "1.0.0", "/target");
+      const result = await client.download("@scope/utils", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       // Resolved URL should include prefix in the path
@@ -234,7 +234,7 @@ describe("GitHubRegistryClient", () => {
     test("returns error when no token provided", async () => {
       const { client } = createClient({ token: undefined });
 
-      const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("authentication");
@@ -265,7 +265,7 @@ describe("GitHubRegistryClient", () => {
       });
 
       const client = new GitHubRegistryClient(registry, http, fs, shell);
-      const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("oras");

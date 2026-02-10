@@ -86,9 +86,9 @@ export class GitHubRegistryClient implements RegistryClient {
 
   async download(
     artifactId: string,
-    version: string | undefined,
-    targetDir: string
+    options: { version?: string; targetDir: string }
   ): Promise<DownloadResult> {
+    const { version, targetDir } = options;
     if (!this.namespace) {
       return {
         success: false,
@@ -168,10 +168,10 @@ export class GitHubRegistryClient implements RegistryClient {
   }
 
   async publish(
-    artifactId: string,
-    version: string,
-    tarballPath: string
+    options: { artifactId: string; version: string; tarballPath: string }
   ): Promise<PublishResult> {
+    const { artifactId, version, tarballPath } = options;
+
     if (!this.token) {
       return {
         success: false,

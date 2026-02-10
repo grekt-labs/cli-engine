@@ -166,7 +166,7 @@ describe("GitLabRegistryClient", () => {
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Download failed");
@@ -184,7 +184,7 @@ describe("GitLabRegistryClient", () => {
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("401");
@@ -209,7 +209,7 @@ describe("GitLabRegistryClient", () => {
       // Simulate extracted file
       fs.files.set("/target/agent.md", { content: "# Agent", isDirectory: false });
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.version).toBe("1.0.0");
@@ -232,7 +232,7 @@ describe("GitLabRegistryClient", () => {
 
       fs.files.set("/target/agent.md", { content: "# Agent", isDirectory: false });
 
-      const result = await client.download("@scope/artifact", undefined, "/target");
+      const result = await client.download("@scope/artifact", { targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.version).toBe("2.0.0");
@@ -246,7 +246,7 @@ describe("GitLabRegistryClient", () => {
         ])
       );
 
-      const result = await client.download("@scope/missing", undefined, "/target");
+      const result = await client.download("@scope/missing", { targetDir: "/target" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("No versions found");
@@ -283,7 +283,7 @@ describe("GitLabRegistryClient", () => {
       const client = new GitLabRegistryClient(registry, http, fs, shell);
       fs.files.set("/target/file.md", { content: "content", isDirectory: false });
 
-      await client.download("@scope/my-artifact", "1.0.0", "/target");
+      await client.download("@scope/my-artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(downloadUrl).toContain("gitlab.mycompany.com");
       expect(downloadUrl).toContain("team%2Fartifacts");
@@ -306,7 +306,7 @@ describe("GitLabRegistryClient", () => {
 
       fs.files.set("/target/agent.md", { content: "# Agent content", isDirectory: false });
 
-      const result = await client.download("@scope/artifact", "1.0.0", "/target");
+      const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
       expect(result.integrity).toMatch(/^sha256:/);
@@ -318,7 +318,7 @@ describe("GitLabRegistryClient", () => {
     test("returns error when no token provided", async () => {
       const { client } = createClient({ token: undefined });
 
-      const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("authentication");
@@ -341,7 +341,7 @@ describe("GitLabRegistryClient", () => {
       };
 
       const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
-      const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("already exists");
@@ -376,7 +376,7 @@ describe("GitLabRegistryClient", () => {
 
       const client = new GitLabRegistryClient(registry, http, fs, shell);
 
-      const result = await client.publish("@scope/artifact", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(true);
       expect(uploadedUrl).toContain("group%2Fproject");
@@ -745,7 +745,7 @@ describe("GitLabRegistryClient", () => {
       };
 
       const client = new GitLabRegistryClient(registry, http, fs, shell);
-      await client.download("@scope/utils", "1.0.0", "/target");
+      await client.download("@scope/utils", { version: "1.0.0", targetDir: "/target" });
 
       expect(downloadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");
     });
@@ -779,7 +779,7 @@ describe("GitLabRegistryClient", () => {
       };
 
       const client = new GitLabRegistryClient(registry, http, fs, shell);
-      const result = await client.publish("@scope/utils", "1.0.0", "/path/to/tarball.tar.gz");
+      const result = await client.publish({ artifactId: "@scope/utils", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(true);
       expect(uploadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");

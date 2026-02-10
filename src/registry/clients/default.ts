@@ -131,9 +131,10 @@ export class DefaultRegistryClient implements RegistryClient {
 
   async download(
     artifactId: string,
-    version: string | undefined,
-    targetDir: string
+    options: { version?: string; targetDir: string }
   ): Promise<DownloadResult> {
+    const { version, targetDir } = options;
+
     // Resolve version if not specified
     let resolvedVersion = version;
     if (!resolvedVersion) {
@@ -247,9 +248,7 @@ export class DefaultRegistryClient implements RegistryClient {
   }
 
   async publish(
-    _artifactId: string,
-    _version: string,
-    _tarballPath: string
+    _options: { artifactId: string; version: string; tarballPath: string }
   ): Promise<PublishResult> {
     // Default registry publishing requires API authentication
     // This is handled separately via the auth layer in CLI
