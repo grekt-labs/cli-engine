@@ -49,6 +49,8 @@ export const ArtifactManifestSchema = z.object({
   description: z.string(),
   keywords: KeywordsSchema.optional(),
   private: z.boolean().optional(),
+  license: z.string().optional(),
+  repository: z.string().url().optional(),
   components: ComponentsSchema, // Auto-generated during publish/pack
 });
 export type ArtifactManifest = z.infer<typeof ArtifactManifestSchema>;
@@ -106,6 +108,8 @@ export const ProjectConfigSchema = z.object({
   version: SemverSchema.optional(),
   description: z.string().optional(),
   keywords: KeywordsSchema.optional(),
+  license: z.string().optional(),
+  repository: z.string().url().optional(),
 
   // Config fields (for consuming artifacts)
   targets: z.array(z.string()).default([]),
