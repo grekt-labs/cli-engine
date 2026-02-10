@@ -1,3 +1,10 @@
+# [5.12.0](https://github.com/grekt-labs/cli-engine/compare/v5.11.1...v5.12.0) (2026-02-10)
+
+
+### Features
+
+* **schemas:** add license and repository to manifest and project config ([6fb70e2](https://github.com/grekt-labs/cli-engine/commit/6fb70e2ede62bbc2439cc0929069538a311907d4))
+
 ## [5.11.1](https://github.com/grekt-labs/cli-engine/compare/v5.11.0...v5.11.1) (2026-02-09)
 
 
