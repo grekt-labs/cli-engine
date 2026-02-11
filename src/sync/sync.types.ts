@@ -51,6 +51,10 @@ export interface SyncPlugin {
   /** Get target paths for cleanup. Null if not applicable. */
   getTargetPaths(): TargetPaths | null;
 
+  /** Resolve the target path for a synced file within a category.
+   * Accounts for plugin-specific path overrides (e.g., Claude skills use folders). */
+  resolveTargetPath?(artifactId: string, category: Category, filePath: string): string;
+
   /** Optional one-time setup when target is first configured (e.g., create skill router) */
   setup?(projectRoot: string): void;
 }
