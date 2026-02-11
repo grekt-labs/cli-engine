@@ -28,6 +28,12 @@ export function parseFrontmatter(content: string): FrontmatterParseResult {
     return { success: false, reason: "no-frontmatter" };
   }
 
+  // Fallback: use unprefixed fields (name, description, type) when grk-* are missing.
+  // This avoids duplicating frontmatter for tools that already use standard fields.
+  if (!data["grk-type"] && data["type"]) data["grk-type"] = data["type"];
+  if (!data["grk-name"] && data["name"]) data["grk-name"] = data["name"];
+  if (!data["grk-description"] && data["description"]) data["grk-description"] = data["description"];
+
   const missingFields: string[] = [];
   if (!data["grk-type"]) missingFields.push("grk-type");
   if (!data["grk-name"]) missingFields.push("grk-name");
