@@ -1,3 +1,10 @@
+# [5.15.0](https://github.com/grekt-labs/cli-engine/compare/v5.14.0...v5.15.0) (2026-02-11)
+
+
+### Features
+
+* fallback to unprefixed frontmatter fields (name, description, type) ([62c8a71](https://github.com/grekt-labs/cli-engine/commit/62c8a7184a899f88adb885c7e5d418947cc3b008))
+
 # [5.14.0](https://github.com/grekt-labs/cli-engine/compare/v5.13.0...v5.14.0) (2026-02-11)
 
 
