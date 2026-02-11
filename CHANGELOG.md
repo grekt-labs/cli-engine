@@ -1,3 +1,10 @@
+# [5.13.0](https://github.com/grekt-labs/cli-engine/compare/v5.12.1...v5.13.0) (2026-02-11)
+
+
+### Features
+
+* add resolveTargetPath to SyncPlugin interface ([1d788d1](https://github.com/grekt-labs/cli-engine/commit/1d788d196eb03daeb74d91b6962383d60188e56e))
+
 ## [5.12.1](https://github.com/grekt-labs/cli-engine/compare/v5.12.0...v5.12.1) (2026-02-10)
 
 
