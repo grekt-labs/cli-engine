@@ -2,6 +2,8 @@
 
 Deterministic core logic for grekt CLI. Portable, testable, dependency-injected.
 
+> **Free to use.** cli-engine is free for personal and commercial use. If you're building something with it, we'd love to hear about it. The source is available under [BSL 1.1](./LICENSE), which just means you can't use this code to build something that competes with grekt. Each version converts to [MIT](./LICENSING.md) after two years.
+
 ## Installation
 
 ```bash
@@ -16,48 +18,22 @@ This package provides the core logic for grekt, separated from I/O concerns thro
 - **Testable** — mock interfaces instead of filesystem/network
 - **Deterministic** — pure functions with explicit dependencies
 
-## Exports
+### What's inside
 
-### Core Interfaces
+- **Core interfaces** — dependency injection contracts (`FileSystem`, `HttpClient`, `EngineContext`, etc.)
+- **Schemas** — Zod schemas and TypeScript types for all grekt data structures
+- **Artifact operations** — integrity, scanning, frontmatter parsing, lockfile management
+- **Registry operations** — resolve, download, publish, OCI support
+- **Sync operations** — plugin system, content generation, target templates
+- **Version utilities** — semver parsing, comparison, bumping
+- **Formatters** — bytes, tokens, numbers
 
-Dependency injection interfaces for I/O operations:
+For API details and usage examples, visit the [documentation](https://docs.grekt.com).
 
-```ts
-import type {
-  FileSystem,
-  HttpClient,
-  TokenProvider,
-  PathConfig,
-  EngineContext,
-} from '@grekt-labs/cli-engine';
-```
+## Contributing
 
-### Schemas
-
-Zod schemas and TypeScript types for validation:
-
-```ts
-import {
-  ProjectConfigSchema,
-  LockfileSchema,
-  ArtifactManifestSchema,
-  // ... and more
-} from '@grekt-labs/cli-engine';
-```
-
-### Formatters
-
-Pure utility functions:
-
-```ts
-import {
-  formatBytes,
-  estimateTokens,
-  formatNumber,
-  formatTokenEstimate,
-} from '@grekt-labs/cli-engine';
-```
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Feature requests and bug reports are welcome.
 
 ## License
 
-[BSL 1.1](./LICENSE)
+[BSL 1.1](./LICENSE) — [What does this mean?](./LICENSING.md)
