@@ -1,3 +1,10 @@
+## [5.15.1](https://github.com/grekt-labs/cli-engine/compare/v5.15.0...v5.15.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* align hook artifact format with Claude Code standard ([c332f74](https://github.com/grekt-labs/cli-engine/commit/c332f74f650b19bf339cda1c966092db204676c6))
+
 # [5.15.0](https://github.com/grekt-labs/cli-engine/compare/v5.14.0...v5.15.0) (2026-02-11)
 
 
