@@ -270,7 +270,7 @@ grk-name: Has name
         "grk-name": "format-on-save",
         "grk-description": "Auto-format files after edit",
         target: "claude",
-        events: {
+        hooks: {
           PostToolUse: [
             {
               matcher: "Edit|Write",
@@ -305,7 +305,7 @@ grk-name: Has name
         "grk-name": "lint-hook",
         "grk-description": "Run linter on save",
         target: "claude",
-        events: { PostToolUse: [] },
+        hooks: { PostToolUse: [] },
       });
 
       const fs = createMockFileSystem({
@@ -320,7 +320,7 @@ grk-name: Has name
 
       const content = result!.hooks[0].parsed.content as Record<string, unknown>;
       expect(content.target).toBe("claude");
-      expect(content.events).toBeDefined();
+      expect(content.hooks).toBeDefined();
       // grk-* fields should be stripped from content
       expect(content["grk-type"]).toBeUndefined();
       expect(content["grk-name"]).toBeUndefined();
