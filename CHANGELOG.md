@@ -1,3 +1,10 @@
+# [5.16.0](https://github.com/grekt-labs/cli-engine/compare/v5.15.1...v5.16.0) (2026-02-13)
+
+
+### Features
+
+* add sync plugin hooks for content transformation and sibling copying ([8535c22](https://github.com/grekt-labs/cli-engine/commit/8535c222b0b4c603ede2208ae9d4945d28a000b1))
+
 ## [5.15.1](https://github.com/grekt-labs/cli-engine/compare/v5.15.0...v5.15.1) (2026-02-13)
 
 
