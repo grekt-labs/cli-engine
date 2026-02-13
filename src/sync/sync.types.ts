@@ -65,6 +65,20 @@ export interface TargetPaths {
   entryPoints: string[];
 }
 
+/** Context passed to the afterFileSync hook */
+export interface AfterFileSyncContext {
+  /** Absolute path to the source file */
+  sourcePath: string;
+  /** Absolute path to the source file directory */
+  sourceDir: string;
+  /** Absolute path to the target file directory */
+  targetDir: string;
+  /** The category of the synced file */
+  category: Category;
+  /** The artifact identifier */
+  artifactId: string;
+}
+
 /** Configuration for folder-based plugins */
 export interface FolderPluginConfig {
   id: string;
@@ -76,6 +90,12 @@ export interface FolderPluginConfig {
   getTargetPath?: (artifactId: string, category: string, filePath: string) => string | null;
   /** Optional setup function called when target is first configured */
   setup?: (projectRoot: string) => void;
+  /** Restrict which categories are synced. If not provided, all markdown categories are synced. */
+  syncCategories?: Category[];
+  /** Transform file content before writing to target. If not provided, files are copied as-is. */
+  transformContent?: (content: string, category: Category, artifactId: string) => string;
+  /** Called after each file is synced. Useful for copying sibling files (scripts, references, assets). */
+  afterFileSync?: (context: AfterFileSyncContext) => void;
 }
 
 /** Configuration for rules-only plugins */
