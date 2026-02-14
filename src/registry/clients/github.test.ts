@@ -270,5 +270,37 @@ describe("GitHubRegistryClient", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("oras");
     });
+
+    test("passes relative tarball path to oras", async () => {
+      const registry: ResolvedRegistry = {
+        type: "github",
+        host: "ghcr.io",
+        project: "myorg",
+        token: "ghp_xxxx",
+      };
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string) => {
+        if (url.includes("/manifests/")) {
+          return new Response("Not Found", { status: 404 });
+        }
+        return jsonResponse({ tags: [] });
+      };
+
+      const fs = createMockFileSystem();
+      const shell = createMockShellExecutor({ oras: "" });
+
+      const client = new GitHubRegistryClient(registry, http, fs, shell);
+      const absolutePath = `${process.cwd()}/.grekt/tmp/artifact.tar.gz`;
+      await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: absolutePath });
+
+      const orasCall = shell.calls.find((c) => c.command === "oras" && c.args[0] === "push");
+      expect(orasCall).toBeDefined();
+
+      // The last arg contains the tarball path — it should be relative, not absolute
+      const tarballArg = orasCall!.args[orasCall!.args.length - 1]!;
+      expect(tarballArg.startsWith("/")).toBe(false);
+      expect(tarballArg).toContain(".grekt/tmp/artifact.tar.gz");
+    });
   });
 });
