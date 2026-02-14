@@ -10,6 +10,7 @@
  * @see https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
  */
 
+import { relative } from "path";
 import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
 import type {
   RegistryClient,
@@ -208,13 +209,14 @@ export class GitHubRegistryClient implements RegistryClient {
       const fullRef = `${this.host}/${repoName}:${version}`;
 
       // Use oras push with grekt media type and inline auth
-      // oras push --username USERNAME --password TOKEN ghcr.io/namespace/name:version artifact.tar.gz:mediatype
+      // oras rejects absolute paths by default (security check), so we convert to relative
+      const relativeTarball = relative(process.cwd(), tarballPath);
       const orasArgs = [
         "push",
         "--username", "USERNAME",
         "--password", this.token,
         fullRef,
-        `${tarballPath}:${GREKT_MEDIA_TYPES.layer}`,
+        `${relativeTarball}:${GREKT_MEDIA_TYPES.layer}`,
       ];
 
       this.shell.execFile("oras", orasArgs);
