@@ -1,3 +1,10 @@
+## [5.16.2](https://github.com/grekt-labs/cli-engine/compare/v5.16.1...v5.16.2) (2026-02-14)
+
+
+### Bug Fixes
+
+* add GHCR OAuth2 token exchange to OciClient ([a709ace](https://github.com/grekt-labs/cli-engine/commit/a709ace22016a5a5faf4b0d23c0542f88291d21a))
+
 ## [5.16.1](https://github.com/grekt-labs/cli-engine/compare/v5.16.0...v5.16.1) (2026-02-14)
 
 
