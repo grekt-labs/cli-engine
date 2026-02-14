@@ -132,13 +132,15 @@ export class OciClient {
   }
 
   /**
-   * Fetch with automatic token exchange on 401 responses
+   * Fetch with automatic token exchange on 401/403 responses
    *
    * OCI registries like GHCR don't accept PATs directly as Bearer tokens.
    * This method handles the challenge-response flow transparently:
    * 1. Make the request with current credentials
    * 2. If 401 with WWW-Authenticate, exchange PAT for a registry token
-   * 3. Retry the request with the exchanged token
+   * 3. If 403 (GHCR rejects PATs as Bearer tokens), strip auth and retry
+   *    unauthenticated to get a proper 401 challenge, then exchange
+   * 4. Retry the original request with the exchanged token
    */
   private async authenticatedFetch(
     url: string,
@@ -146,11 +148,34 @@ export class OciClient {
   ): Promise<Response> {
     const response = await this.http.fetch(url, options);
 
-    if (response.status !== 401 || !this.token) {
+    if (!this.token) {
       return response;
     }
 
-    const wwwAuthenticate = response.headers.get("www-authenticate");
+    let wwwAuthenticate: string | null = null;
+
+    if (response.status === 401) {
+      wwwAuthenticate = response.headers.get("www-authenticate");
+    } else if (response.status === 403) {
+      // GHCR returns 403 when a PAT is sent directly as Bearer token.
+      // Strip the auth header and retry to get a proper 401 challenge.
+      const { Authorization: _, ...headersWithoutAuth } = (options.headers ?? {}) as Record<string, string>;
+      const challengeResponse = await this.http.fetch(url, {
+        ...options,
+        headers: headersWithoutAuth,
+      });
+
+      if (challengeResponse.status === 401) {
+        wwwAuthenticate = challengeResponse.headers.get("www-authenticate");
+      }
+
+      if (!wwwAuthenticate) {
+        return response;
+      }
+    } else {
+      return response;
+    }
+
     if (!wwwAuthenticate) {
       return response;
     }

@@ -321,6 +321,62 @@ describe("GitHubRegistryClient", () => {
       // Token endpoint should be called only once, cached for the second request
       expect(getTokenEndpointCalls()).toBe(1);
     });
+
+    test("handles 403 by stripping auth to get 401 challenge (GHCR behavior)", async () => {
+      let tokenEndpointCalls = 0;
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        // Token endpoint
+        if (url.startsWith("https://ghcr.io/token")) {
+          tokenEndpointCalls++;
+          return jsonResponse(TOKEN_RESPONSE);
+        }
+
+        const authHeader = (options?.headers as Record<string, string>)?.Authorization;
+
+        // Exchanged token - succeed
+        if (authHeader === "Bearer exchanged-registry-token") {
+          if (url.includes("/tags/list")) {
+            return jsonResponse({ tags: ["1.0.0"] });
+          }
+        }
+
+        // PAT sent as Bearer - GHCR returns 403 (not 401)
+        if (authHeader?.startsWith("Bearer ghp_")) {
+          return new Response("Forbidden", { status: 403 });
+        }
+
+        // No auth header (stripped) - return 401 with challenge
+        if (!authHeader) {
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: { "WWW-Authenticate": WWW_AUTHENTICATE_HEADER },
+          });
+        }
+
+        return new Response("Forbidden", { status: 403 });
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "github",
+        host: "ghcr.io",
+        project: "myorg",
+        token: "ghp_test_pat",
+      };
+
+      const client = new GitHubRegistryClient(
+        registry,
+        http,
+        createMockFileSystem(),
+        createMockShellExecutor()
+      );
+
+      const result = await client.listVersions("@scope/utils");
+
+      expect(result).toEqual(["1.0.0"]);
+      expect(tokenEndpointCalls).toBe(1);
+    });
   });
 
   describe("publish", () => {
