@@ -230,6 +230,99 @@ describe("GitHubRegistryClient", () => {
     });
   });
 
+  describe("token exchange", () => {
+    const WWW_AUTHENTICATE_HEADER =
+      'Bearer realm="https://ghcr.io/token",service="ghcr.io",scope="repository:myorg/utils:pull"';
+
+    const TOKEN_RESPONSE = { token: "exchanged-registry-token" };
+
+    function createTokenExchangeClient() {
+      let fetchCallCount = 0;
+      let tokenEndpointCalls = 0;
+
+      const http = createMockHttpClient();
+      http.fetch = async (url: string, options?: RequestInit) => {
+        fetchCallCount++;
+
+        // Token endpoint
+        if (url.startsWith("https://ghcr.io/token")) {
+          tokenEndpointCalls++;
+          const authHeader = (options?.headers as Record<string, string>)?.Authorization;
+          if (!authHeader?.startsWith("Basic ")) {
+            return new Response("Unauthorized", { status: 401 });
+          }
+          return jsonResponse(TOKEN_RESPONSE);
+        }
+
+        // OCI registry endpoints - first call returns 401, retries succeed
+        const authHeader = (options?.headers as Record<string, string>)?.Authorization;
+        if (authHeader === "Bearer exchanged-registry-token") {
+          // Authenticated with exchanged token - succeed
+          if (url.includes("/tags/list")) {
+            return jsonResponse({ tags: ["1.0.0", "2.0.0"] });
+          }
+          if (url.includes("/manifests/")) {
+            return jsonResponse({
+              schemaVersion: 2,
+              mediaType: "application/vnd.oci.image.manifest.v1+json",
+              layers: [{
+                mediaType: "application/vnd.grekt.artifact.layer.v1.tar+gzip",
+                digest: "sha256:abc123",
+                size: 100,
+              }],
+            });
+          }
+          if (url.includes("/blobs/")) {
+            return new Response(Buffer.from("fake-tarball"), {
+              status: 200,
+              headers: { "Content-Type": "application/octet-stream" },
+            });
+          }
+        }
+
+        // No token or PAT token - return 401 with challenge
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: { "WWW-Authenticate": WWW_AUTHENTICATE_HEADER },
+        });
+      };
+
+      const registry: ResolvedRegistry = {
+        type: "github",
+        host: "ghcr.io",
+        project: "myorg",
+        token: "ghp_test_pat",
+      };
+
+      const client = new GitHubRegistryClient(
+        registry,
+        http,
+        createMockFileSystem(),
+        createMockShellExecutor()
+      );
+
+      return { client, http, getFetchCallCount: () => fetchCallCount, getTokenEndpointCalls: () => tokenEndpointCalls };
+    }
+
+    test("exchanges PAT for registry token on 401 challenge", async () => {
+      const { client } = createTokenExchangeClient();
+
+      const result = await client.listVersions("@scope/utils");
+
+      expect(result).toEqual(["2.0.0", "1.0.0"]);
+    });
+
+    test("caches exchanged token across requests with same scope", async () => {
+      const { client, getTokenEndpointCalls } = createTokenExchangeClient();
+
+      await client.listVersions("@scope/utils");
+      await client.listVersions("@scope/utils");
+
+      // Token endpoint should be called only once, cached for the second request
+      expect(getTokenEndpointCalls()).toBe(1);
+    });
+  });
+
   describe("publish", () => {
     test("returns error when no token provided", async () => {
       const { client } = createClient({ token: undefined });
