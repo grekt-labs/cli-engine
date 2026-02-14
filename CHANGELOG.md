@@ -1,3 +1,10 @@
+## [5.16.3](https://github.com/grekt-labs/cli-engine/compare/v5.16.2...v5.16.3) (2026-02-14)
+
+
+### Bug Fixes
+
+* handle GHCR 403 response in token exchange flow ([810fc4c](https://github.com/grekt-labs/cli-engine/commit/810fc4c25b4adb956d738142d68aaf05fb71c4ab))
+
 ## [5.16.2](https://github.com/grekt-labs/cli-engine/compare/v5.16.1...v5.16.2) (2026-02-14)
 
 
