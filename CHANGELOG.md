@@ -1,3 +1,10 @@
+## [5.16.1](https://github.com/grekt-labs/cli-engine/compare/v5.16.0...v5.16.1) (2026-02-14)
+
+
+### Bug Fixes
+
+* use relative path for oras push to avoid absolute path rejection ([69c9b56](https://github.com/grekt-labs/cli-engine/commit/69c9b56e694602c080a69ee8678249a6b914f4f0))
+
 # [5.16.0](https://github.com/grekt-labs/cli-engine/compare/v5.15.1...v5.16.0) (2026-02-13)
 
 
