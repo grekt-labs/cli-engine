@@ -1,3 +1,10 @@
+# [5.17.0](https://github.com/grekt-labs/cli-engine/compare/v5.16.3...v5.17.0) (2026-02-15)
+
+
+### Features
+
+* add remote search fallback to skill router ([#74](https://github.com/grekt-labs/cli-engine/issues/74)) ([c80527e](https://github.com/grekt-labs/cli-engine/commit/c80527e4d1e5a3b23070e68398d59e2544f09ebf))
+
 ## [5.16.3](https://github.com/grekt-labs/cli-engine/compare/v5.16.2...v5.16.3) (2026-02-14)
 
 
