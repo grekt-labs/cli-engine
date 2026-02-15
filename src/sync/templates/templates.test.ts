@@ -14,9 +14,9 @@ describe("templates", () => {
       const template = getSkillRouterTemplate();
 
       expect(template).toContain("# Grekt Skill Loader");
-      expect(template).toContain("## Modes");
-      expect(template).toContain("### Direct mode:");
-      expect(template).toContain("### Search mode:");
+      expect(template).toContain("## Direct mode:");
+      expect(template).toContain("## Search mode:");
+      expect(template).toContain("## Remote fallback");
       expect(template).toContain("## Rules");
     });
 
