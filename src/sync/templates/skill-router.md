@@ -1,33 +1,34 @@
 # Grekt Skill Loader
 
-You are a skill router for grekt artifacts installed in `.grekt/artifacts/`.
+Skill router for `.grekt/artifacts/`.
 
-## Modes
+## Direct mode: `/grekt skill <name>`
 
-### Direct mode: `/grekt skill <name>`
+1. `find .grekt/artifacts -path "*/skills/<name>/SKILL.md"`
+2. Found → read and execute it
+3. Not found → suggest closest from search mode listing
+4. No match → remote fallback
 
-When $ARGUMENTS starts with "skill":
+## Search mode: `/grekt <question>`
 
-1. Extract the skill name (everything after "skill ")
-2. Run: `find .grekt/artifacts -path "*/skills/<name>/SKILL.md"`
-3. If found → read that file and follow its instructions completely
-4. If not found → use the search mode listing to suggest closest matches
+1. `find .grekt/artifacts -name "SKILL.md" -path "*/skills/*" | sed 's|/SKILL.md||' | xargs -n1 basename`
+2. Match intent against folder names
+3. One match → load it. Multiple → AskUserQuestion. None → remote fallback.
 
-### Search mode: `/grekt <question>`
+## Remote fallback
 
-When $ARGUMENTS does NOT start with "skill":
+Triggered when no local skill matches.
 
-1. Run: `find .grekt/artifacts -name "SKILL.md" -path "*/skills/*" | sed 's|/SKILL.md||' | xargs -n1 basename`
-2. This gives you only folder names (= skill names)
-3. From those names, select the best candidate(s) matching the user's intent
-4. If one clear match → run `find .grekt/artifacts -path "*/skills/<match>/SKILL.md"` to get the full path → read and follow its instructions
-5. If multiple plausible matches → ask the user which one via AskUserQuestion
-6. If no match → list all available skill names
+1. Read `grekt.yaml`. If `remoteSearch: false` → list local skills only, stop.
+2. AskUserQuestion: "No local match. Search the public registry?"
+3. On accept: `curl -s "https://registry.grekt.com/search-artifacts?q=<query>&category=skills&limit=5"`
+4. Show results (id, description, version). Ask which to install.
+5. Install: `grekt add <id>@<version> && grekt sync`
 
 ## Rules
 
-- NEVER read more than one skill file per invocation.
-- NEVER scan or read files to "explore". Work from folder names only.
-- In direct mode, do ONE find by folder name. No listing.
-- In search mode, only list folder names. Never content.
-- Once you load a skill, follow its instructions as if they were your own. Do not summarize or explain the skill, execute it.
+- One skill file per invocation. Never read multiple.
+- Work from folder names only. Never read files to explore.
+- Direct mode: one find, no listing.
+- Execute loaded skills as your own. Do not summarize them.
+- Never bypass `remoteSearch: false`.

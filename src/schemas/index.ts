@@ -114,6 +114,7 @@ export const ProjectConfigSchema = z.object({
   // Config fields (for consuming artifacts)
   targets: z.array(z.string()).default([]),
   registry: z.string().optional(),
+  remoteSearch: z.boolean().default(true), // Allow skill router to search the public registry when no local match is found
   artifacts: z.record(z.string(), ArtifactEntrySchema).default({}),
   customTargets: z.record(z.string(), CustomTargetSchema).default({}),
 });
