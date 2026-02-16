@@ -1,3 +1,10 @@
+# [5.18.0](https://github.com/grekt-labs/cli-engine/compare/v5.17.0...v5.18.0) (2026-02-16)
+
+
+### Features
+
+* add core-sym artifact mode and symlink support to FileSystem interface ([4b7cd07](https://github.com/grekt-labs/cli-engine/commit/4b7cd0752501cfd0cab0a472bc642b666ac81f04))
+
 # [5.17.0](https://github.com/grekt-labs/cli-engine/compare/v5.16.3...v5.17.0) (2026-02-15)
 
 
