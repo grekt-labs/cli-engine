@@ -1,3 +1,10 @@
+## [5.18.1](https://github.com/grekt-labs/cli-engine/compare/v5.18.0...v5.18.1) (2026-02-16)
+
+
+### Bug Fixes
+
+* skill router flexible lookup for non-standard structures ([#76](https://github.com/grekt-labs/cli-engine/issues/76)) ([9552756](https://github.com/grekt-labs/cli-engine/commit/95527569c028692e9c5a1ede6ddd1a75d9ee1e90))
+
 # [5.18.0](https://github.com/grekt-labs/cli-engine/compare/v5.17.0...v5.18.0) (2026-02-16)
 
 
