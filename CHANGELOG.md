@@ -1,3 +1,10 @@
+# [5.19.0](https://github.com/grekt-labs/cli-engine/compare/v5.18.1...v5.19.0) (2026-02-17)
+
+
+### Features
+
+* add local source type for path-based artifact resolution ([bf90907](https://github.com/grekt-labs/cli-engine/commit/bf9090715dd474f59eae6df2dbca98959c8aa0e4))
+
 ## [5.18.1](https://github.com/grekt-labs/cli-engine/compare/v5.18.0...v5.18.1) (2026-02-16)
 
 
