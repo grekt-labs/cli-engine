@@ -1,3 +1,10 @@
+# [5.20.0](https://github.com/grekt-labs/cli-engine/compare/v5.19.0...v5.20.0) (2026-02-18)
+
+
+### Features
+
+* add local security scanning with AgentVerus ([438b9e0](https://github.com/grekt-labs/cli-engine/commit/438b9e0398b619b9fa334e459feea97f011088be))
+
 # [5.19.0](https://github.com/grekt-labs/cli-engine/compare/v5.18.1...v5.19.0) (2026-02-17)
 
 
