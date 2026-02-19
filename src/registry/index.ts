@@ -27,5 +27,5 @@ export {
 export { createRegistryClient } from "./factory";
 
 // Clients (direct access if needed)
-export { DefaultRegistryClient } from "./clients/default";
+export { DefaultRegistryClient, RegistryApiError } from "./clients/default";
 export { GitLabRegistryClient } from "./clients/gitlab";
