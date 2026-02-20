@@ -1,4 +1,4 @@
-import { basename } from "path";
+import { basename, dirname } from "path";
 import type { ArtifactManifest } from "#/schemas";
 
 /**
@@ -48,15 +48,49 @@ export function parseName(name: string): {
 }
 
 /**
+ * Filenames considered generic — their identity comes from the parent directory, not the file itself.
+ * When a file uses one of these names, the parent directory name is used to disambiguate.
+ */
+const GENERIC_FILENAMES = ["SKILL.md", "agent.md"];
+
+/**
+ * Extract a meaningful filename from a filepath.
+ * For generic filenames (SKILL.md, agent.md), uses the parent directory name instead.
+ *
+ * @example resolveComponentFilename("skills/analyze.md") → "analyze.md"
+ * @example resolveComponentFilename("lockfile-io/SKILL.md") → "lockfile-io.md"
+ * @example resolveComponentFilename("artifact-ops/agent.md") → "artifact-ops.md"
+ * @example resolveComponentFilename("agent.md") → "agent.md" (no parent, keeps as-is)
+ */
+export function resolveComponentFilename(filepath: string): string {
+  const filename = basename(filepath);
+
+  if (GENERIC_FILENAMES.includes(filename)) {
+    const parentDir = basename(dirname(filepath));
+    if (parentDir && parentDir !== ".") {
+      const extension = filename.substring(filename.lastIndexOf("."));
+      return `${parentDir}${extension}`;
+    }
+  }
+
+  return filename;
+}
+
+/**
  * Create a namespaced filename to avoid collisions between artifacts.
  * Used when syncing artifacts to target directories.
  *
+ * For generic filenames (SKILL.md, agent.md inside subdirectories),
+ * the parent directory name is used to disambiguate.
+ *
  * @example getSafeFilename("@grekt/analyzer", "skills/analyze.md") → "grekt-analyzer_analyze.md"
  * @example getSafeFilename("my-artifact", "agent.md") → "my-artifact_agent.md"
+ * @example getSafeFilename("@scope/art", "ops/lockfile-io/SKILL.md") → "scope-art_lockfile-io.md"
+ * @example getSafeFilename("@scope/art", "core-ops/agent.md") → "scope-art_core-ops.md"
  */
 export function getSafeFilename(artifactId: string, filepath: string): string {
   const safeName = artifactId.replace("@", "").replace("/", "-");
-  const filename = basename(filepath);
+  const filename = resolveComponentFilename(filepath);
   return `${safeName}_${filename}`;
 }
 
