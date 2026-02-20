@@ -1,3 +1,10 @@
+# [5.23.0](https://github.com/grekt-labs/cli-engine/compare/v5.22.2...v5.23.0) (2026-02-20)
+
+
+### Features
+
+* add badge severity utility and trusted field to artifact entry schema ([#81](https://github.com/grekt-labs/cli-engine/issues/81)) ([f856a53](https://github.com/grekt-labs/cli-engine/commit/f856a5317023cb16daadfe5166fa52bbd94d1a2c))
+
 ## [5.22.2](https://github.com/grekt-labs/cli-engine/compare/v5.22.1...v5.22.2) (2026-02-20)
 
 
