@@ -1,3 +1,10 @@
+## [5.23.1](https://github.com/grekt-labs/cli-engine/compare/v5.23.0...v5.23.1) (2026-02-21)
+
+
+### Bug Fixes
+
+* detect dotfile directory paths as local sources in parseSource ([#82](https://github.com/grekt-labs/cli-engine/issues/82)) ([57d8cac](https://github.com/grekt-labs/cli-engine/commit/57d8cace953eb475976c1bc82f14671cb20fe684))
+
 # [5.23.0](https://github.com/grekt-labs/cli-engine/compare/v5.22.2...v5.23.0) (2026-02-20)
 
 
