@@ -1,3 +1,10 @@
+# [5.25.0](https://github.com/grekt-labs/cli-engine/compare/v5.24.1...v5.25.0) (2026-02-21)
+
+
+### Features
+
+* add HMAC signed trust for artifact verification ([1cd9e54](https://github.com/grekt-labs/cli-engine/commit/1cd9e54844147ddc251c4b54d5dcd507da9f1e72))
+
 ## [5.24.1](https://github.com/grekt-labs/cli-engine/compare/v5.24.0...v5.24.1) (2026-02-21)
 
 
