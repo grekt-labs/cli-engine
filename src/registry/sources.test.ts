@@ -117,6 +117,26 @@ describe("sources", () => {
       expect(result.identifier).toBe("~/my-skills");
     });
 
+    test("returns local type for dotfile directory path", () => {
+      const result = parseSource(".claude/skills/api-endpoint/SKILL.md");
+
+      expect(result.type).toBe("local");
+      expect(result.identifier).toBe(".claude/skills/api-endpoint/SKILL.md");
+    });
+
+    test("returns local type for dotfile path with nested dirs", () => {
+      const result = parseSource(".grekt/artifacts/some-artifact");
+
+      expect(result.type).toBe("local");
+      expect(result.identifier).toBe(".grekt/artifacts/some-artifact");
+    });
+
+    test("does not treat bare dotfile without slash as local", () => {
+      const result = parseSource(".gitignore");
+
+      expect(result.type).toBe("registry");
+    });
+
     test("preserves raw source string", () => {
       const source = "github:owner/repo#v1.0.0";
       const result = parseSource(source);
