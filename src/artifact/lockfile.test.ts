@@ -215,6 +215,65 @@ describe("lockfile", () => {
       expect(parsed.artifacts["@scope/new"].version).toBe("2.0.0");
     });
 
+    test("synced hashes survive lockfile round-trip", () => {
+      const fs = createMockFileSystem();
+      const lockfile: Lockfile = {
+        version: 1,
+        artifacts: {
+          "@author/foo": {
+            version: "1.0.0",
+            integrity: "sha256:abc123",
+            mode: "core",
+            files: {
+              "rules/coding.md": "sha256:filehash1",
+            },
+            synced: {
+              claude: {
+                ".claude/rules/author-foo_coding.md": "sha256:filehash1",
+              },
+              cursor: {
+                ".cursor/rules/author-foo_coding.md": "sha256:transformed2",
+              },
+            },
+          },
+        },
+      };
+
+      saveLockfile(fs, "/project/grekt.lock", lockfile);
+      const result = getLockfile(fs, "/project/grekt.lock");
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const synced = result.data.artifacts["@author/foo"].synced;
+        expect(synced).toBeDefined();
+        expect(synced!.claude[".claude/rules/author-foo_coding.md"]).toBe("sha256:filehash1");
+        expect(synced!.cursor[".cursor/rules/author-foo_coding.md"]).toBe("sha256:transformed2");
+      }
+    });
+
+    test("lockfile without synced field loads correctly after upgrade", () => {
+      const fs = createMockFileSystem();
+      const legacyLockfile = {
+        version: 1,
+        artifacts: {
+          "@author/old": {
+            version: "1.0.0",
+            integrity: "sha256:abc",
+            files: { "agent.md": "sha256:hash1" },
+          },
+        },
+      };
+
+      saveLockfile(fs, "/project/grekt.lock", legacyLockfile as Lockfile);
+      const result = getLockfile(fs, "/project/grekt.lock");
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.artifacts["@author/old"].synced).toBeUndefined();
+        expect(result.data.artifacts["@author/old"].files["agent.md"]).toBe("sha256:hash1");
+      }
+    });
+
     test("preserves all artifact data", () => {
       const fs = createMockFileSystem();
       const lockfile: Lockfile = {

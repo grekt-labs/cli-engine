@@ -11,6 +11,8 @@ export interface SyncResult {
   created: string[];
   updated: string[];
   skipped: string[];
+  /** Per-artifact synced file hashes: { artifactId: { "target/path.md": "sha256:..." } } */
+  syncedFiles: Record<string, Record<string, string>>;
 }
 
 export interface SyncOptions {

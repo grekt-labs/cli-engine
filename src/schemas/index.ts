@@ -184,6 +184,10 @@ export const LockfileEntrySchema = z.object({
   resolved: z.string().optional(), // Full URL, IMMUTABLE after write
   mode: ArtifactModeSchema.default("lazy"), // core = copied to target, lazy = only in index
   files: z.record(z.string(), z.string()).default({}), // per-file hashes: { "agent.md": "sha256:abc..." }
+  synced: z.record(
+    z.string(), // plugin id ("claude", "cursor", etc.)
+    z.record(z.string(), z.string()) // { "target/path.md": "sha256:..." | "link:source/path" }
+  ).optional(),
 });
 
 export const LockfileSchema = z.object({
