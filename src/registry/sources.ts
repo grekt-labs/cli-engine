@@ -8,10 +8,18 @@
 import type { ParsedSource } from "./registry.types";
 
 /**
+ * Check if a source string looks like a dotfile directory path (e.g. `.claude/skills/...`)
+ * Matches strings starting with `.` followed by a word char and containing `/`
+ */
+function isDotDirectoryPath(source: string): boolean {
+  return /^\.\w/.test(source) && source.includes("/");
+}
+
+/**
  * Parse artifact source string into structured format
  *
  * Supported formats:
- * - `./path`, `../path`, `/absolute`, `~/home` → local
+ * - `./path`, `../path`, `/absolute`, `~/home`, `.dotdir/path` → local
  * - `@author/name` or `name` → registry
  * - `github:owner/repo` → GitHub
  * - `github:owner/repo#v1.0.0` → GitHub with tag
@@ -20,8 +28,8 @@ import type { ParsedSource } from "./registry.types";
  * - `gitlab:host.com/owner/repo#main` → Self-hosted with ref
  */
 export function parseSource(source: string): ParsedSource {
-  // Local paths: ./relative, ../parent, /absolute, ~/home
-  if (source.startsWith("./") || source.startsWith("../") || source.startsWith("/") || source.startsWith("~/")) {
+  // Local paths: ./relative, ../parent, /absolute, ~/home, .dotdir/path
+  if (source.startsWith("./") || source.startsWith("../") || source.startsWith("/") || source.startsWith("~/") || isDotDirectoryPath(source)) {
     return {
       type: "local",
       identifier: source,
