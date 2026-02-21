@@ -1,3 +1,10 @@
+## [5.24.1](https://github.com/grekt-labs/cli-engine/compare/v5.24.0...v5.24.1) (2026-02-21)
+
+
+### Bug Fixes
+
+* resolve typecheck errors in compareHashes ([331ab85](https://github.com/grekt-labs/cli-engine/commit/331ab851b196ffd94d9de7300613ffeebcdc7311))
+
 # [5.24.0](https://github.com/grekt-labs/cli-engine/compare/v5.23.1...v5.24.0) (2026-02-21)
 
 
