@@ -1,3 +1,10 @@
+# [5.24.0](https://github.com/grekt-labs/cli-engine/compare/v5.23.1...v5.24.0) (2026-02-21)
+
+
+### Features
+
+* add synced hashes to lockfile for sync drift detection ([f3a87f3](https://github.com/grekt-labs/cli-engine/commit/f3a87f356e9b80748ab07ff464edc778fede9bbf))
+
 ## [5.23.1](https://github.com/grekt-labs/cli-engine/compare/v5.23.0...v5.23.1) (2026-02-21)
 
 
