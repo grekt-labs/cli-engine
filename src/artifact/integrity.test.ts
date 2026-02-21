@@ -1,5 +1,7 @@
 import { describe, test, expect } from "bun:test";
 import {
+  hashContent,
+  hashFile,
   hashDirectory,
   calculateIntegrity,
   verifyIntegrity,
@@ -10,6 +12,33 @@ import { createMockFileSystem } from "#/test-utils/mocks";
 const HASH_PATTERN = /^sha256:[a-f0-9]{32}$/;
 
 describe("integrity", () => {
+  describe("hashFile", () => {
+    test("file hash matches content hash for the same artifact file", () => {
+      const artifactContent = "---\ngrk-type: rule\n---\n# Coding standards";
+      const fs = createMockFileSystem({
+        "/artifacts/@author/rules/coding.md": artifactContent,
+      });
+
+      const fileHash = hashFile(fs, "/artifacts/@author/rules/coding.md");
+      const contentHash = hashContent(artifactContent);
+
+      expect(fileHash).toBe(contentHash);
+    });
+
+    test("detects when artifact file content changes after install", () => {
+      const originalContent = "# Original rule";
+      const originalHash = hashContent(originalContent);
+
+      const fs = createMockFileSystem({
+        "/artifacts/@author/rules/coding.md": "# Modified by user",
+      });
+
+      const currentHash = hashFile(fs, "/artifacts/@author/rules/coding.md");
+
+      expect(currentHash).not.toBe(originalHash);
+    });
+  });
+
   describe("hashDirectory", () => {
     test("returns empty object for empty directory", () => {
       const fs = createMockFileSystem();

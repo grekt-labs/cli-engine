@@ -2,9 +2,17 @@ import { createHash } from "crypto";
 import { join, relative } from "path";
 import type { FileSystem } from "#/core";
 
-function hashContent(content: string): string {
+export function hashContent(content: string): string {
   const hash = createHash("sha256").update(content).digest("hex");
   return `sha256:${hash.slice(0, 32)}`;
+}
+
+/**
+ * Hash a single file by reading its content
+ */
+export function hashFile(fs: FileSystem, filePath: string): string {
+  const content = fs.readFile(filePath);
+  return hashContent(content);
 }
 
 /**

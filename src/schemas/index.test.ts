@@ -457,6 +457,76 @@ describe("schemas", () => {
       expect(result.files["agents/main.md"]).toBe("sha256:def456");
     });
 
+    test("lockfile from older CLI version (without synced) remains valid", () => {
+      const legacyEntry = {
+        version: "1.0.0",
+        integrity: "sha256:abc123",
+        mode: "core",
+        files: { "rules/coding.md": "sha256:abc123" },
+      };
+
+      const result = LockfileEntrySchema.parse(legacyEntry);
+
+      expect(result.synced).toBeUndefined();
+      expect(result.files["rules/coding.md"]).toBe("sha256:abc123");
+    });
+
+    test("core artifact synced to multiple targets preserves per-plugin hashes", () => {
+      const entry = {
+        version: "1.0.0",
+        integrity: "sha256:abc123",
+        mode: "core",
+        files: { "rules/coding.md": "sha256:abc123" },
+        synced: {
+          claude: { ".claude/rules/author-foo_coding.md": "sha256:abc123" },
+          cursor: { ".cursor/rules/author-foo_coding.md": "sha256:abc123" },
+        },
+      };
+
+      const result = LockfileEntrySchema.parse(entry);
+
+      expect(Object.keys(result.synced!)).toEqual(["claude", "cursor"]);
+      expect(result.synced!.claude[".claude/rules/author-foo_coding.md"]).toBe("sha256:abc123");
+      expect(result.synced!.cursor[".cursor/rules/author-foo_coding.md"]).toBe("sha256:abc123");
+    });
+
+    test("core-sym artifact stores symlink targets instead of hashes", () => {
+      const entry = {
+        version: "1.0.0",
+        integrity: "sha256:abc123",
+        mode: "core-sym",
+        files: { "rules/coding.md": "sha256:abc123" },
+        synced: {
+          claude: {
+            ".claude/rules/author-foo_coding.md": "link:/project/.grekt/artifacts/@author/foo/rules/coding.md",
+          },
+        },
+      };
+
+      const result = LockfileEntrySchema.parse(entry);
+
+      const syncedValue = result.synced!.claude[".claude/rules/author-foo_coding.md"];
+      expect(syncedValue.startsWith("link:")).toBe(true);
+    });
+
+    test("transformed plugin produces different synced hash than source file hash", () => {
+      const entry = {
+        version: "1.0.0",
+        integrity: "sha256:abc123",
+        mode: "core",
+        files: { "rules/coding.md": "sha256:original111" },
+        synced: {
+          claude: { ".claude/rules/author-foo_coding.md": "sha256:transformed222" },
+        },
+      };
+
+      const result = LockfileEntrySchema.parse(entry);
+
+      expect(result.files["rules/coding.md"]).not.toBe(
+        result.synced!.claude[".claude/rules/author-foo_coding.md"]
+      );
+    });
+
     test("rejects invalid semver version", () => {
       const invalid = {
         version: "banana",
