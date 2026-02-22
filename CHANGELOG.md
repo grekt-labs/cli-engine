@@ -1,3 +1,15 @@
+# [6.1.0](https://github.com/grekt-labs/cli-engine/compare/v6.0.0...v6.1.0) (2026-02-22)
+
+
+### Bug Fixes
+
+* strip unprefixed metadata fields from JSON parsed content ([9e0ef40](https://github.com/grekt-labs/cli-engine/commit/9e0ef405cfbe9af817677157767105dd67da823d))
+
+
+### Features
+
+* add unprefixed field fallback to JSON scanner ([7622516](https://github.com/grekt-labs/cli-engine/commit/7622516c2151c6eb498296d7da29884970e71510))
+
 # [6.0.0](https://github.com/grekt-labs/cli-engine/compare/v5.26.0...v6.0.0) (2026-02-22)
 
 
