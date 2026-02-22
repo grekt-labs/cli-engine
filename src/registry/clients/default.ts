@@ -6,7 +6,7 @@
  * Zero dependency on any specific backend — just HTTP.
  */
 
-import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
+import { validateTarballContents, generateSecureTempPath, type FileSystem, type HttpClient, type TarOperations } from "#/core";
 import type {
   RegistryClient,
   ResolvedRegistry,
@@ -62,20 +62,20 @@ export class DefaultRegistryClient implements RegistryClient, DefaultRegistryOpe
   private token?: string;
   private http: HttpClient;
   private fs: FileSystem;
-  private shell: ShellExecutor;
+  private tar: TarOperations;
 
   constructor(
     registry: ResolvedRegistry,
     http: HttpClient,
     fs: FileSystem,
-    shell: ShellExecutor
+    tar: TarOperations
   ) {
     this.host = registry.host;
     this.apiBasePath = registry.apiBasePath || "";
     this.token = registry.token;
     this.http = http;
     this.fs = fs;
-    this.shell = shell;
+    this.tar = tar;
   }
 
   private getApiUrl(): string {
@@ -211,7 +211,7 @@ export class DefaultRegistryClient implements RegistryClient, DefaultRegistryOpe
       this.fs.writeFileBinary(tempTarball, Buffer.from(buffer));
 
       // Validate tarball contents BEFORE extraction (prevents path traversal)
-      const validation = validateTarballContents(this.shell, tempTarball, targetDir, 1);
+      const validation = validateTarballContents(this.tar, tempTarball, targetDir, 1);
       if (!validation.safe) {
         this.fs.unlink(tempTarball);
         return {
@@ -222,9 +222,12 @@ export class DefaultRegistryClient implements RegistryClient, DefaultRegistryOpe
 
       this.fs.mkdir(targetDir, { recursive: true });
 
-      // Use array-based args to prevent shell injection
-      const tarArgs = ["-xzf", tempTarball, "-C", targetDir, "--strip-components=1"];
-      this.shell.execFile("tar", tarArgs);
+      this.tar.extract({
+        tarballPath: tempTarball,
+        targetDir,
+        gzip: true,
+        stripComponents: 1,
+      });
 
       // Clean up temp file
       if (this.fs.exists(tempTarball)) {
@@ -473,11 +476,3 @@ export class RegistryApiError extends Error {
   }
 }
 
-/**
- * Generate a secure temporary file path using crypto.randomUUID.
- */
-function generateSecureTempPath(): string {
-  const crypto = require("crypto");
-  const uuid = crypto.randomUUID();
-  return `/tmp/grekt-${uuid}.tar.gz`;
-}

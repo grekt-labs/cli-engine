@@ -47,6 +47,33 @@ export interface TokenProvider {
   getGitToken(type: 'github' | 'gitlab', host?: string): string | undefined;
 }
 
+export interface TarOperations {
+  create(options: TarCreateOptions): void;
+  extract(options: TarExtractOptions): void;
+  list(tarballPath: string): TarEntry[];
+}
+
+export interface TarCreateOptions {
+  outputPath: string;
+  sourceDir: string;
+  entries: string[];
+  gzip: boolean;
+  exclude?: string[];
+}
+
+export interface TarExtractOptions {
+  tarballPath: string;
+  targetDir: string;
+  gzip: boolean;
+  stripComponents?: number;
+}
+
+export interface TarEntry {
+  path: string;
+  type: "file" | "directory" | "symlink" | "other";
+  linkTarget?: string;
+}
+
 export interface PathConfig {
   projectRoot: string;
   artifactsDir: string;
@@ -59,6 +86,7 @@ export interface EngineContext {
   fs: FileSystem;
   http: HttpClient;
   shell: ShellExecutor;
+  tar: TarOperations;
   tokens: TokenProvider;
   paths: PathConfig;
 }

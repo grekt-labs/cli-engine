@@ -10,7 +10,7 @@
  * @see https://docs.gitlab.com/ee/user/packages/generic_packages/
  */
 
-import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
+import { validateTarballContents, generateSecureTempPath, type FileSystem, type HttpClient, type TarOperations } from "#/core";
 import type {
   RegistryClient,
   ResolvedRegistry,
@@ -37,13 +37,13 @@ export class GitLabRegistryClient implements RegistryClient {
   private prefix?: string;
   private http: HttpClient;
   private fs: FileSystem;
-  private shell: ShellExecutor;
+  private tar: TarOperations;
 
   constructor(
     registry: ResolvedRegistry,
     http: HttpClient,
     fs: FileSystem,
-    shell: ShellExecutor
+    tar: TarOperations
   ) {
     if (!registry.project) {
       throw new Error("GitLab registry requires 'project' field in config");
@@ -57,7 +57,7 @@ export class GitLabRegistryClient implements RegistryClient {
     this.prefix = registry.prefix;
     this.http = http;
     this.fs = fs;
-    this.shell = shell;
+    this.tar = tar;
   }
 
   /**
@@ -161,12 +161,12 @@ export class GitLabRegistryClient implements RegistryClient {
       }
 
       const buffer = await response.arrayBuffer();
-      const tempTarball = generateSecureTempPath();
+      const tempTarball = generateSecureTempPath("gitlab");
       this.fs.writeFileBinary(tempTarball, Buffer.from(buffer));
 
       // Validate tarball contents BEFORE extraction (prevents path traversal)
       // stripComponents=1 matches the extraction below
-      const validation = validateTarballContents(this.shell, tempTarball, targetDir, 1);
+      const validation = validateTarballContents(this.tar, tempTarball, targetDir, 1);
       if (!validation.safe) {
         this.fs.unlink(tempTarball);
         return {
@@ -177,9 +177,12 @@ export class GitLabRegistryClient implements RegistryClient {
 
       this.fs.mkdir(targetDir, { recursive: true });
 
-      // Use array-based args to prevent shell injection
-      const tarArgs = ["-xzf", tempTarball, "-C", targetDir, "--strip-components=1"];
-      this.shell.execFile("tar", tarArgs);
+      this.tar.extract({
+        tarballPath: tempTarball,
+        targetDir,
+        gzip: true,
+        stripComponents: 1,
+      });
 
       // Clean up temp file
       if (this.fs.exists(tempTarball)) {
@@ -322,15 +325,6 @@ export class GitLabRegistryClient implements RegistryClient {
       versions: sortedVersionInfo,
     };
   }
-}
-
-/**
- * Generate a secure temporary file path using crypto.randomUUID.
- */
-function generateSecureTempPath(): string {
-  const crypto = require("crypto");
-  const uuid = crypto.randomUUID();
-  return `/tmp/grekt-gitlab-${uuid}.tar.gz`;
 }
 
 /**

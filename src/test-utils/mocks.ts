@@ -2,7 +2,7 @@
  * Test utilities - Mock factories for dependency injection interfaces
  */
 
-import type { FileSystem, HttpClient, ShellExecutor, TokenProvider } from "#/core";
+import type { FileSystem, HttpClient, ShellExecutor, TarOperations, TarEntry, TarCreateOptions, TarExtractOptions, TokenProvider } from "#/core";
 
 interface MockFileEntry {
   content: string | Buffer;
@@ -217,6 +217,42 @@ export function createMockShellExecutor(
 
       // Default: return empty string (command succeeded)
       return "";
+    },
+  };
+}
+
+/**
+ * Recorded tar operation call
+ */
+interface TarCall {
+  operation: "create" | "extract" | "list";
+  options: TarCreateOptions | TarExtractOptions | string;
+}
+
+/**
+ * Create a mock TarOperations with predefined list results.
+ * By default, list() returns an empty array (safe tarball with no entries).
+ * Extract and create are recorded but do nothing.
+ */
+export function createMockTarOperations(
+  listResults: TarEntry[] = []
+): TarOperations & { calls: TarCall[] } {
+  const calls: TarCall[] = [];
+
+  return {
+    calls,
+
+    create(options: TarCreateOptions): void {
+      calls.push({ operation: "create", options });
+    },
+
+    extract(options: TarExtractOptions): void {
+      calls.push({ operation: "extract", options });
+    },
+
+    list(tarballPath: string): TarEntry[] {
+      calls.push({ operation: "list", options: tarballPath });
+      return listResults;
     },
   };
 }

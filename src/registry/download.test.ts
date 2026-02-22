@@ -9,7 +9,7 @@ import {
 import {
   createMockFileSystem,
   createMockHttpClient,
-  createMockShellExecutor,
+  createMockTarOperations,
   binaryResponse,
   errorResponse,
 } from "#/test-utils/mocks";
@@ -111,18 +111,53 @@ describe("download", () => {
         new Map([[url, binaryResponse(tarballData)]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({
-        "tar": "",
-      });
+      const tar = createMockTarOperations();
 
-      const result = await downloadAndExtractTarball(http, fs, shell, url, targetDir);
+      const result = await downloadAndExtractTarball(http, fs, tar, url, targetDir);
 
       expect(result.success).toBe(true);
       expect(result.error).toBeUndefined();
-      const extractCall = shell.calls.find((call) => call.args.includes("-xzf"));
+      const extractCall = tar.calls.find((call) => call.operation === "extract");
       expect(extractCall).toBeDefined();
-      expect(extractCall?.command).toBe("tar");
-      expect(extractCall?.args).toContain(targetDir);
+    });
+
+    test("calls tar.extract with correct options", async () => {
+      const tarballData = Buffer.from("fake-tarball-data");
+      const targetDir = "/target/dir";
+      const url = "https://example.com/artifact.tar.gz";
+
+      const http = createMockHttpClient(
+        new Map([[url, binaryResponse(tarballData)]])
+      );
+      const fs = createMockFileSystem();
+      const tar = createMockTarOperations();
+
+      await downloadAndExtractTarball(http, fs, tar, url, targetDir);
+
+      const extractCall = tar.calls.find((call) => call.operation === "extract");
+      expect(extractCall).toBeDefined();
+      const extractOptions = extractCall!.options as { tarballPath: string; targetDir: string; gzip: boolean; stripComponents?: number };
+      expect(extractOptions.targetDir).toBe(targetDir);
+      expect(extractOptions.gzip).toBe(true);
+      expect(extractOptions.stripComponents).toBe(1);
+    });
+
+    test("validates tarball contents before extraction", async () => {
+      const tarballData = Buffer.from("fake-tarball-data");
+      const url = "https://example.com/artifact.tar.gz";
+
+      const http = createMockHttpClient(
+        new Map([[url, binaryResponse(tarballData)]])
+      );
+      const fs = createMockFileSystem();
+      const tar = createMockTarOperations();
+
+      await downloadAndExtractTarball(http, fs, tar, url, "/target");
+
+      // list() should be called before extract()
+      const listCallIndex = tar.calls.findIndex((call) => call.operation === "list");
+      const extractCallIndex = tar.calls.findIndex((call) => call.operation === "extract");
+      expect(listCallIndex).toBeLessThan(extractCallIndex);
     });
 
     test("returns error on HTTP failure", async () => {
@@ -132,9 +167,9 @@ describe("download", () => {
         new Map([[url, errorResponse(404, "Not Found")]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
+      const tar = createMockTarOperations();
 
-      const result = await downloadAndExtractTarball(http, fs, shell, url, "/target");
+      const result = await downloadAndExtractTarball(http, fs, tar, url, "/target");
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("HTTP 404: Not Found");
@@ -143,12 +178,12 @@ describe("download", () => {
     test("returns error on network failure", async () => {
       const http = createMockHttpClient(); // No responses configured = 404
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
+      const tar = createMockTarOperations();
 
       const result = await downloadAndExtractTarball(
         http,
         fs,
-        shell,
+        tar,
         "https://example.com/artifact.tar.gz",
         "/target"
       );
@@ -165,15 +200,13 @@ describe("download", () => {
         new Map([[url, binaryResponse(tarballData)]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({
-        "tar": "",
-      });
+      const tar = createMockTarOperations();
 
-      await downloadAndExtractTarball(http, fs, shell, url, "/target");
+      await downloadAndExtractTarball(http, fs, tar, url, "/target");
 
       // Temp file should be deleted after extraction
       const tempFiles = Array.from(fs.files.keys()).filter((k) =>
-        k.startsWith("/tmp/grekt-")
+        k.includes("grekt-")
       );
       expect(tempFiles.length).toBe(0);
     });
@@ -194,9 +227,9 @@ describe("download", () => {
         },
       };
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar": "" });
+      const tar = createMockTarOperations();
 
-      await downloadAndExtractTarball(http, fs, shell, url, "/target", {
+      await downloadAndExtractTarball(http, fs, tar, url, "/target", {
         headers: { Authorization: "Bearer token" },
       });
 
@@ -212,15 +245,16 @@ describe("download", () => {
         new Map([[url, binaryResponse(tarballData)]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar": "" });
+      const tar = createMockTarOperations();
 
-      await downloadAndExtractTarball(http, fs, shell, url, "/target", {
+      await downloadAndExtractTarball(http, fs, tar, url, "/target", {
         stripComponents: 2,
       });
 
-      const extractCall = shell.calls.find((call) => call.args.includes("-xzf"));
+      const extractCall = tar.calls.find((call) => call.operation === "extract");
       expect(extractCall).toBeDefined();
-      expect(extractCall?.args).toContain("--strip-components=2");
+      const extractOptions = extractCall!.options as { stripComponents?: number };
+      expect(extractOptions.stripComponents).toBe(2);
     });
 
     test("uses no strip-components when set to 0", async () => {
@@ -231,15 +265,54 @@ describe("download", () => {
         new Map([[url, binaryResponse(tarballData)]])
       );
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar": "" });
+      const tar = createMockTarOperations();
 
-      await downloadAndExtractTarball(http, fs, shell, url, "/target", {
+      await downloadAndExtractTarball(http, fs, tar, url, "/target", {
         stripComponents: 0,
       });
 
-      const extractCall = shell.calls.find((call) => call.args.includes("-xzf"));
+      const extractCall = tar.calls.find((call) => call.operation === "extract");
       expect(extractCall).toBeDefined();
-      expect(extractCall?.args.join(" ")).not.toContain("--strip-components");
+      const extractOptions = extractCall!.options as { stripComponents?: number };
+      expect(extractOptions.stripComponents).toBeUndefined();
+    });
+
+    test("rejects tarball with path traversal entries", async () => {
+      const tarballData = Buffer.from("fake-tarball-data");
+      const url = "https://example.com/artifact.tar.gz";
+
+      const http = createMockHttpClient(
+        new Map([[url, binaryResponse(tarballData)]])
+      );
+      const fs = createMockFileSystem();
+      const tar = createMockTarOperations([
+        { path: "prefix/../../../etc/passwd", type: "file" },
+      ]);
+
+      const result = await downloadAndExtractTarball(http, fs, tar, url, "/target");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Unsafe tarball");
+      expect(result.error).toContain("Path traversal");
+    });
+
+    test("rejects tarball with symlinks escaping target", async () => {
+      const tarballData = Buffer.from("fake-tarball-data");
+      const url = "https://example.com/artifact.tar.gz";
+
+      const http = createMockHttpClient(
+        new Map([[url, binaryResponse(tarballData)]])
+      );
+      const fs = createMockFileSystem();
+      const tar = createMockTarOperations([
+        { path: "prefix/evil-link", type: "symlink", linkTarget: "../../../etc/shadow" },
+      ]);
+
+      const result = await downloadAndExtractTarball(http, fs, tar, url, "/target");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Unsafe tarball");
+      expect(result.error).toContain("Symlink escapes");
     });
   });
 });

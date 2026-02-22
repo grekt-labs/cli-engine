@@ -11,7 +11,7 @@
  */
 
 import { relative } from "path";
-import { validateTarballContents, type FileSystem, type HttpClient, type ShellExecutor } from "#/core";
+import { validateTarballContents, generateSecureTempPath, type FileSystem, type HttpClient, type ShellExecutor, type TarOperations } from "#/core";
 import type {
   RegistryClient,
   ResolvedRegistry,
@@ -34,13 +34,15 @@ export class GitHubRegistryClient implements RegistryClient {
   private http: HttpClient;
   private fs: FileSystem;
   private shell: ShellExecutor;
+  private tar: TarOperations;
   private ociClient: OciClient;
 
   constructor(
     registry: ResolvedRegistry,
     http: HttpClient,
     fs: FileSystem,
-    shell: ShellExecutor
+    shell: ShellExecutor,
+    tar: TarOperations
   ) {
     if (!registry.project) {
       throw new Error(
@@ -54,6 +56,7 @@ export class GitHubRegistryClient implements RegistryClient {
     this.http = http;
     this.fs = fs;
     this.shell = shell;
+    this.tar = tar;
     this.namespace = registry.project;
 
     // Initialize OCI client for pull operations
@@ -124,11 +127,11 @@ export class GitHubRegistryClient implements RegistryClient {
       }
 
       // Write to temp file
-      const tempTarball = generateSecureTempPath();
+      const tempTarball = generateSecureTempPath("github");
       this.fs.writeFileBinary(tempTarball, pullResult.data);
 
       // Validate tarball contents BEFORE extraction (prevents path traversal)
-      const validation = validateTarballContents(this.shell, tempTarball, targetDir, 1);
+      const validation = validateTarballContents(this.tar, tempTarball, targetDir, 1);
       if (!validation.safe) {
         this.fs.unlink(tempTarball);
         return {
@@ -139,9 +142,12 @@ export class GitHubRegistryClient implements RegistryClient {
 
       this.fs.mkdir(targetDir, { recursive: true });
 
-      // Extract tarball
-      const tarArgs = ["-xzf", tempTarball, "-C", targetDir, "--strip-components=1"];
-      this.shell.execFile("tar", tarArgs);
+      this.tar.extract({
+        tarballPath: tempTarball,
+        targetDir,
+        gzip: true,
+        stripComponents: 1,
+      });
 
       // Clean up temp file
       if (this.fs.exists(tempTarball)) {
@@ -291,11 +297,3 @@ export class GitHubRegistryClient implements RegistryClient {
   }
 }
 
-/**
- * Generate a secure temporary file path using crypto.randomUUID.
- */
-function generateSecureTempPath(): string {
-  const crypto = require("crypto");
-  const uuid = crypto.randomUUID();
-  return `/tmp/grekt-github-${uuid}.tar.gz`;
-}
