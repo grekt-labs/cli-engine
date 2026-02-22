@@ -6,6 +6,7 @@ import {
   createMockHttpClient,
   createMockFileSystem,
   createMockShellExecutor,
+  createMockTarOperations,
 } from "#/test-utils/mocks";
 import type { ResolvedRegistry } from "./registry.types";
 
@@ -16,6 +17,7 @@ describe("factory", () => {
     const http = createMockHttpClient();
     const fs = createMockFileSystem();
     const shell = createMockShellExecutor();
+    const tar = createMockTarOperations();
 
     test("returns DefaultRegistryClient for default type", () => {
       const registry: ResolvedRegistry = {
@@ -23,7 +25,7 @@ describe("factory", () => {
         host: REGISTRY_HOST,
       };
 
-      const client = createRegistryClient(registry, http, fs, shell);
+      const client = createRegistryClient(registry, http, fs, shell, tar);
 
       expect(client).toBeInstanceOf(DefaultRegistryClient);
     });
@@ -35,7 +37,7 @@ describe("factory", () => {
         project: "group/project",
       };
 
-      const client = createRegistryClient(registry, http, fs, shell);
+      const client = createRegistryClient(registry, http, fs, shell, tar);
 
       expect(client).toBeInstanceOf(GitLabRegistryClient);
     });
@@ -46,7 +48,7 @@ describe("factory", () => {
         host: "example.com",
       };
 
-      const client = createRegistryClient(registry, http, fs, shell);
+      const client = createRegistryClient(registry, http, fs, shell, tar);
 
       expect(client).toBeInstanceOf(DefaultRegistryClient);
     });
@@ -58,7 +60,7 @@ describe("factory", () => {
         // project is missing
       };
 
-      expect(() => createRegistryClient(registry, http, fs, shell)).toThrow(
+      expect(() => createRegistryClient(registry, http, fs, shell, tar)).toThrow(
         "GitLab registry requires 'project' field in config"
       );
     });
@@ -72,7 +74,7 @@ describe("factory", () => {
       };
 
       // Should not throw
-      const client = createRegistryClient(registry, http, fs, shell);
+      const client = createRegistryClient(registry, http, fs, shell, tar);
       expect(client).toBeInstanceOf(GitLabRegistryClient);
     });
   });

@@ -3,7 +3,7 @@ import { GitLabRegistryClient } from "./gitlab";
 import {
   createMockHttpClient,
   createMockFileSystem,
-  createMockShellExecutor,
+  createMockTarOperations,
   jsonResponse,
   binaryResponse,
   errorResponse,
@@ -23,13 +23,13 @@ describe("GitLabRegistryClient", () => {
     };
     const http = createMockHttpClient(httpResponses);
     const fs = createMockFileSystem();
-    const shell = createMockShellExecutor({ "tar": "" });
+    const tar = createMockTarOperations();
 
     return {
-      client: new GitLabRegistryClient(fullRegistry, http, fs, shell),
+      client: new GitLabRegistryClient(fullRegistry, http, fs, tar),
       http,
       fs,
-      shell,
+      tar,
     };
   };
 
@@ -42,10 +42,8 @@ describe("GitLabRegistryClient", () => {
       };
       const http = createMockHttpClient();
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
-
       expect(
-        () => new GitLabRegistryClient(registry, http, fs, shell)
+        () => new GitLabRegistryClient(registry, http, fs, createMockTarOperations())
       ).toThrow("GitLab registry requires 'project' field in config");
     });
 
@@ -57,10 +55,8 @@ describe("GitLabRegistryClient", () => {
       };
       const http = createMockHttpClient();
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
-
       expect(
-        () => new GitLabRegistryClient(registry, http, fs, shell)
+        () => new GitLabRegistryClient(registry, http, fs, createMockTarOperations())
       ).not.toThrow();
     });
 
@@ -79,7 +75,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(requestedUrl).toContain("https://gitlab.example.com/api/v4");
@@ -101,7 +97,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(requestedUrl).toContain("https://gitlab.internal/api/v4");
@@ -123,7 +119,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/subgroup/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(requestedUrl).toContain("group%2Fsubgroup%2Fproject");
@@ -144,7 +140,7 @@ describe("GitLabRegistryClient", () => {
         project: "/group/subgroup/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(requestedUrl).toContain("group%2Fsubgroup%2Fproject");
@@ -165,7 +161,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(false);
@@ -183,7 +179,7 @@ describe("GitLabRegistryClient", () => {
         token: "bad-token",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       const result = await client.download("@scope/artifact", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(false);
@@ -272,7 +268,6 @@ describe("GitLabRegistryClient", () => {
       };
 
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar": "" });
 
       const registry: ResolvedRegistry = {
         type: "gitlab",
@@ -280,7 +275,7 @@ describe("GitLabRegistryClient", () => {
         project: "team/artifacts",
       };
 
-      const client = new GitLabRegistryClient(registry, http, fs, shell);
+      const client = new GitLabRegistryClient(registry, http, fs, createMockTarOperations());
       fs.files.set("/target/file.md", { content: "content", isDirectory: false });
 
       await client.download("@scope/my-artifact", { version: "1.0.0", targetDir: "/target" });
@@ -340,7 +335,7 @@ describe("GitLabRegistryClient", () => {
         token: "my-token",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
@@ -365,7 +360,6 @@ describe("GitLabRegistryClient", () => {
       const fs = createMockFileSystem({
         "/path/to/tarball.tar.gz": Buffer.from("tarball content"),
       });
-      const shell = createMockShellExecutor();
 
       const registry: ResolvedRegistry = {
         type: "gitlab",
@@ -374,7 +368,7 @@ describe("GitLabRegistryClient", () => {
         token: "my-token",
       };
 
-      const client = new GitLabRegistryClient(registry, http, fs, shell);
+      const client = new GitLabRegistryClient(registry, http, fs, createMockTarOperations());
 
       const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
@@ -492,7 +486,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       const result = await client.versionExists("@scope/artifact", "1.0.0");
 
       expect(result).toBe(true);
@@ -508,7 +502,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       const result = await client.versionExists("@scope/artifact", "3.0.0");
 
       expect(result).toBe(false);
@@ -531,7 +525,7 @@ describe("GitLabRegistryClient", () => {
         project: "group/project",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.versionExists("@scope/artifact", "1.0.0");
 
       expect(requestedMethod).toBe("HEAD");
@@ -613,7 +607,7 @@ describe("GitLabRegistryClient", () => {
         token: "glpat-xxxxxxxxxxxxxxxxxxxx",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(capturedHeaders["PRIVATE-TOKEN"]).toBe("glpat-xxxxxxxxxxxxxxxxxxxx");
@@ -636,7 +630,7 @@ describe("GitLabRegistryClient", () => {
         token: "gldt-xxxxxxxxxxxxxxxxxxxx",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(capturedHeaders["Deploy-Token"]).toBe("gldt-xxxxxxxxxxxxxxxxxxxx");
@@ -659,7 +653,7 @@ describe("GitLabRegistryClient", () => {
         token: "some-legacy-token",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/artifact");
 
       expect(capturedHeaders["PRIVATE-TOKEN"]).toBe("some-legacy-token");
@@ -684,7 +678,7 @@ describe("GitLabRegistryClient", () => {
         prefix: "frontend",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/utils");
 
       // Package name should be "frontend-utils" (using "-" separator, not "/")
@@ -707,7 +701,7 @@ describe("GitLabRegistryClient", () => {
         prefix: "packages-frontend",
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/utils");
 
       // Package name should be "packages-frontend-utils" (using "-" separator)
@@ -734,7 +728,6 @@ describe("GitLabRegistryClient", () => {
       };
 
       const fs = createMockFileSystem();
-      const shell = createMockShellExecutor({ "tar": "" });
       fs.files.set("/target/file.md", { content: "content", isDirectory: false });
 
       const registry: ResolvedRegistry = {
@@ -744,7 +737,7 @@ describe("GitLabRegistryClient", () => {
         prefix: "frontend",
       };
 
-      const client = new GitLabRegistryClient(registry, http, fs, shell);
+      const client = new GitLabRegistryClient(registry, http, fs, createMockTarOperations());
       await client.download("@scope/utils", { version: "1.0.0", targetDir: "/target" });
 
       expect(downloadUrl).toContain("/packages/generic/frontend-utils/1.0.0/");
@@ -768,7 +761,6 @@ describe("GitLabRegistryClient", () => {
       const fs = createMockFileSystem({
         "/path/to/tarball.tar.gz": Buffer.from("tarball content"),
       });
-      const shell = createMockShellExecutor();
 
       const registry: ResolvedRegistry = {
         type: "gitlab",
@@ -778,7 +770,7 @@ describe("GitLabRegistryClient", () => {
         prefix: "frontend",
       };
 
-      const client = new GitLabRegistryClient(registry, http, fs, shell);
+      const client = new GitLabRegistryClient(registry, http, fs, createMockTarOperations());
       const result = await client.publish({ artifactId: "@scope/utils", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(true);
@@ -801,7 +793,7 @@ describe("GitLabRegistryClient", () => {
         // no prefix
       };
 
-      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitLabRegistryClient(registry, http, createMockFileSystem(), createMockTarOperations());
       await client.listVersions("@scope/utils");
 
       // Package name should just be "utils" (no prefix)

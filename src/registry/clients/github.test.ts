@@ -4,6 +4,7 @@ import {
   createMockHttpClient,
   createMockFileSystem,
   createMockShellExecutor,
+  createMockTarOperations,
   jsonResponse,
 } from "#/test-utils/mocks";
 import type { ResolvedRegistry } from "../registry.types";
@@ -19,12 +20,14 @@ describe("GitHubRegistryClient", () => {
     const http = createMockHttpClient();
     const fs = createMockFileSystem();
     const shell = createMockShellExecutor({ oras: "" });
+    const tar = createMockTarOperations();
 
     return {
-      client: new GitHubRegistryClient(fullRegistry, http, fs, shell),
+      client: new GitHubRegistryClient(fullRegistry, http, fs, shell, tar),
       http,
       fs,
       shell,
+      tar,
     };
   };
 
@@ -40,7 +43,7 @@ describe("GitHubRegistryClient", () => {
       const shell = createMockShellExecutor();
 
       expect(
-        () => new GitHubRegistryClient(registry, http, fs, shell)
+        () => new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations())
       ).toThrow("GitHub registry requires 'project' field in config");
     });
 
@@ -55,7 +58,7 @@ describe("GitHubRegistryClient", () => {
       const shell = createMockShellExecutor();
 
       expect(
-        () => new GitHubRegistryClient(registry, http, fs, shell)
+        () => new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations())
       ).not.toThrow();
     });
   });
@@ -82,7 +85,7 @@ describe("GitHubRegistryClient", () => {
         prefix: "frontend",
       };
 
-      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor(), createMockTarOperations());
       await client.listVersions("@scope/utils");
 
       // Repository name should be "myorg/frontend-utils"
@@ -108,7 +111,7 @@ describe("GitHubRegistryClient", () => {
         prefix: "packages-frontend",
       };
 
-      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor(), createMockTarOperations());
       await client.listVersions("@scope/utils");
 
       // Repository name should be "myorg/packages-frontend-utils"
@@ -134,7 +137,7 @@ describe("GitHubRegistryClient", () => {
         // no prefix
       };
 
-      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor(), createMockTarOperations());
       await client.listVersions("@scope/utils");
 
       // Repository name should just be "myorg/utils" (no prefix)
@@ -179,7 +182,7 @@ describe("GitHubRegistryClient", () => {
         prefix: "frontend",
       };
 
-      const client = new GitHubRegistryClient(registry, http, fs, shell);
+      const client = new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations());
       const result = await client.download("@scope/utils", { version: "1.0.0", targetDir: "/target" });
 
       expect(result.success).toBe(true);
@@ -203,7 +206,7 @@ describe("GitHubRegistryClient", () => {
         host: "ghcr.io",
         project: "myorg",
       };
-      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor(), createMockTarOperations());
       const result = await client.listVersions("@scope/artifact");
 
       expect(result).toEqual(["10.0.0", "2.0.0", "1.0.0"]);
@@ -223,7 +226,7 @@ describe("GitHubRegistryClient", () => {
         host: "ghcr.io",
         project: "myorg",
       };
-      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor());
+      const client = new GitHubRegistryClient(registry, http, createMockFileSystem(), createMockShellExecutor(), createMockTarOperations());
       const result = await client.listVersions("@scope/artifact");
 
       expect(result).toEqual(["2.0.0", "1.0.0"]);
@@ -298,7 +301,8 @@ describe("GitHubRegistryClient", () => {
         registry,
         http,
         createMockFileSystem(),
-        createMockShellExecutor()
+        createMockShellExecutor(),
+        createMockTarOperations()
       );
 
       return { client, http, getFetchCallCount: () => fetchCallCount, getTokenEndpointCalls: () => tokenEndpointCalls };
@@ -369,7 +373,8 @@ describe("GitHubRegistryClient", () => {
         registry,
         http,
         createMockFileSystem(),
-        createMockShellExecutor()
+        createMockShellExecutor(),
+        createMockTarOperations()
       );
 
       const result = await client.listVersions("@scope/utils");
@@ -413,7 +418,7 @@ describe("GitHubRegistryClient", () => {
         oras: new Error("command not found: oras"),
       });
 
-      const client = new GitHubRegistryClient(registry, http, fs, shell);
+      const client = new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations());
       const result = await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: "/path/to/tarball.tar.gz" });
 
       expect(result.success).toBe(false);
@@ -439,7 +444,7 @@ describe("GitHubRegistryClient", () => {
       const fs = createMockFileSystem();
       const shell = createMockShellExecutor({ oras: "" });
 
-      const client = new GitHubRegistryClient(registry, http, fs, shell);
+      const client = new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations());
       const absolutePath = `${process.cwd()}/.grekt/tmp/artifact.tar.gz`;
       await client.publish({ artifactId: "@scope/artifact", version: "1.0.0", tarballPath: absolutePath });
 

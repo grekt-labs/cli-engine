@@ -3,7 +3,7 @@ import { DefaultRegistryClient, RegistryApiError } from "./default";
 import {
   createMockHttpClient,
   createMockFileSystem,
-  createMockShellExecutor,
+  createMockTarOperations,
   jsonResponse,
   binaryResponse,
   errorResponse,
@@ -56,9 +56,9 @@ describe("DefaultRegistryClient", () => {
     };
     const http = createMockHttpClient(httpResponses);
     const fs = createMockFileSystem();
-    const shell = createMockShellExecutor({ "tar": "" });
+    const tar = createMockTarOperations();
 
-    return { client: new DefaultRegistryClient(registry, http, fs, shell), http, fs, shell };
+    return { client: new DefaultRegistryClient(registry, http, fs, tar), http, fs, tar };
   };
 
   describe("download", () => {
@@ -66,7 +66,7 @@ describe("DefaultRegistryClient", () => {
       const publicTarballUrl = "https://r2.example.com/artifacts/@scope/artifact/1.0.0.tar.gz";
       const tarballData = Buffer.from("fake-tarball");
 
-      const { client, shell } = createClient(
+      const { client, tar } = createClient(
         REGISTRY_HOST,
         new Map([
           [`${API_BASE}/download?artifact=%40scope%2Fartifact&version=1.0.0`, jsonResponse({ url: publicTarballUrl, deprecated: null })],
@@ -80,7 +80,8 @@ describe("DefaultRegistryClient", () => {
       expect(result.version).toBe("1.0.0");
       // Public URL (no signature) is stored as resolved
       expect(result.resolved).toBe(publicTarballUrl);
-      expect(shell.commands.length).toBeGreaterThan(0);
+      const extractCall = tar.calls.find((c) => c.operation === "extract");
+      expect(extractCall).toBeDefined();
     });
 
     test("resolves latest version when not specified", async () => {
