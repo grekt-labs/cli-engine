@@ -1,3 +1,10 @@
+## [6.1.1](https://github.com/grekt-labs/cli-engine/compare/v6.1.0...v6.1.1) (2026-03-01)
+
+
+### Bug Fixes
+
+* add vite plugin for .md text imports in vitest ([196c59e](https://github.com/grekt-labs/cli-engine/commit/196c59e66a13587e4efcfd3b12cb73c7a45531b5))
+
 # [6.1.0](https://github.com/grekt-labs/cli-engine/compare/v6.0.0...v6.1.0) (2026-02-22)
 
 
