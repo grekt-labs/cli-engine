@@ -1,39 +1,46 @@
-# @grekt-labs/cli-engine
+# @grekt/engine
 
-Deterministic core logic for grekt CLI. Portable, testable, dependency-injected.
-
-> **Free to use.** cli-engine is free for personal and commercial use. If you're building something with it, we'd love to hear about it. The source is available under [BSL 1.1](./LICENSE), which just means you can't use this code to build something that competes with grekt. Each version converts to [MIT](./LICENSING.md) after two years.
-
-## Installation
+Deterministic core logic for the grekt CLI. No I/O. No side effects. Fully injectable.
 
 ```bash
-bun add @grekt-labs/cli-engine
+npm install @grekt/engine
 ```
 
-## Overview
+## What this is
 
-This package provides the core logic for grekt, separated from I/O concerns through dependency injection. This makes the code:
+The engine behind [grekt](https://github.com/grekt-labs/cli) — extracted into a standalone package. Every operation that doesn't touch the filesystem or network lives here.
 
-- **Portable** — runs on any runtime (Node, Bun, Deno, edge)
-- **Testable** — mock interfaces instead of filesystem/network
-- **Deterministic** — pure functions with explicit dependencies
-
-### What's inside
-
-- **Core interfaces** — dependency injection contracts (`FileSystem`, `HttpClient`, `EngineContext`, etc.)
-- **Schemas** — Zod schemas and TypeScript types for all grekt data structures
-- **Artifact operations** — integrity, scanning, frontmatter parsing, lockfile management
-- **Registry operations** — resolve, download, publish, OCI support
+- **Schemas** — Zod validators for `grekt.yaml`, `grekt.lock`, artifact manifests, and every config format grekt uses
+- **Artifact operations** — frontmatter parsing, integrity verification, lockfile management, directory scanning
+- **Registry operations** — artifact resolution, download, publish, OCI distribution support
 - **Sync operations** — plugin system, content generation, target templates
-- **Version utilities** — semver parsing, comparison, bumping
-- **Formatters** — bytes, tokens, numbers
+- **Security** — local scanning via AgentVerus
+- **Utilities** — semver parsing/comparison, byte/token/number formatters, workspace support
 
-For API details and usage examples, visit the [documentation](https://docs.grekt.com).
+## Why it exists
+
+grekt's CLI does I/O. This package does not. All file and network operations are injected through interfaces (`FileSystem`, `HttpClient`, `EngineContext`), which means:
+
+- Runs on Node, Bun, Deno, or edge runtimes
+- Test with mocks instead of real filesystems
+- Same inputs, same outputs, every time
+
+## Requirements
+
+Node >= 18.0.0
+
+## Usage
+
+```ts
+import { parseProjectConfig, resolveArtifact, createLockfile } from "@grekt/engine"
+```
+
+Full API reference at [developer.grekt.com](https://developer.grekt.com).
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md). Feature requests and bug reports are welcome.
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Bug reports and feature requests welcome.
 
 ## License
 
-[BSL 1.1](./LICENSE) — [What does this mean?](./LICENSING.md)
+[BSL 1.1](./LICENSE) — free for personal and commercial use. The only restriction: don't use this code to build a competing AI artifact manager. Each version converts to MIT after two years. Details in [LICENSING.md](./LICENSING.md).
