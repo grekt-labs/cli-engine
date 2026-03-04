@@ -1,3 +1,11 @@
+# [6.2.0](https://github.com/grekt-labs/cli-engine/compare/v6.1.1...v6.2.0) (2026-03-04)
+
+
+### Features
+
+* add beta release channel ([cb59691](https://github.com/grekt-labs/cli-engine/commit/cb59691c8d557dd01685ae359031361f5d2d99d1))
+* add eval system types, schemas, discovery, and scoring ([75d28f3](https://github.com/grekt-labs/cli-engine/commit/75d28f3417c843e347aad346e68f2c50febd0829))
+
 # [6.2.0-beta.1](https://github.com/grekt-labs/cli-engine/compare/v6.1.1...v6.2.0-beta.1) (2026-03-04)
 
 
