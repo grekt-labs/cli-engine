@@ -1,3 +1,10 @@
+# [6.2.0-beta.4](https://github.com/grekt-labs/cli-engine/compare/v6.2.0-beta.3...v6.2.0-beta.4) (2026-03-12)
+
+
+### Features
+
+* add husky pre-push hook to run tests before push ([4cf2622](https://github.com/grekt-labs/cli-engine/commit/4cf26221a5c0bf35417181895c0e4775dd6b257f))
+
 # [6.2.0-beta.3](https://github.com/grekt-labs/cli-engine/compare/v6.2.0-beta.2...v6.2.0-beta.3) (2026-03-12)
 
 
