@@ -1,3 +1,15 @@
+# [6.2.0-beta.3](https://github.com/grekt-labs/cli-engine/compare/v6.2.0-beta.2...v6.2.0-beta.3) (2026-03-12)
+
+
+### Bug Fixes
+
+* update registry mapper test to expect project in URL ([7bcac2c](https://github.com/grekt-labs/cli-engine/commit/7bcac2ccb348fe77373e7816b05da85ead1496bc))
+
+
+### Features
+
+* add scan mappers and fix registry URL to include project path ([e71114d](https://github.com/grekt-labs/cli-engine/commit/e71114d42e4c1f7b207a8685437e7426af7ebd5d))
+
 # [6.2.0-beta.2](https://github.com/grekt-labs/cli-engine/compare/v6.2.0-beta.1...v6.2.0-beta.2) (2026-03-11)
 
 
