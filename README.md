@@ -1,5 +1,9 @@
 # @grekt/engine
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/grekt-labs/cli-engine/badge)](https://securityscorecards.dev/viewer/?uri=github.com/grekt-labs/cli-engine)
+[![Snyk](https://snyk.io/test/github/grekt-labs/cli-engine/badge.svg)](https://snyk.io/test/github/grekt-labs/cli-engine)
+[![Socket](https://socket.dev/api/badge/npm/package/@grekt/engine)](https://socket.dev/npm/package/@grekt/engine)
+
 Deterministic core logic for the grekt CLI. No I/O. No side effects. Fully injectable.
 
 ```bash
