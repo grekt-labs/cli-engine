@@ -53,17 +53,8 @@ describe("factory", () => {
       expect(client).toBeInstanceOf(DefaultRegistryClient);
     });
 
-    test("throws when gitlab registry missing project", () => {
-      const registry: ResolvedRegistry = {
-        type: "gitlab",
-        host: "gitlab.com",
-        // project is missing
-      };
-
-      expect(() => createRegistryClient(registry, http, fs, shell, tar)).toThrow(
-        "GitLab registry requires 'project' field in config"
-      );
-    });
+    // project is now required by the type system for gitlab/github types,
+    // so missing-project tests are no longer needed
 
     test("passes token to gitlab client", () => {
       const registry: ResolvedRegistry = {

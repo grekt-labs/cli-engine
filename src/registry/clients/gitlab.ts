@@ -13,7 +13,7 @@
 import { validateTarballContents, generateSecureTempPath, type FileSystem, type HttpClient, type TarOperations } from "#/core";
 import type {
   RegistryClient,
-  ResolvedRegistry,
+  ResolvedGitLabRegistry,
   DownloadResult,
   PublishResult,
   RegistryArtifactInfo,
@@ -40,15 +40,11 @@ export class GitLabRegistryClient implements RegistryClient {
   private tar: TarOperations;
 
   constructor(
-    registry: ResolvedRegistry,
+    registry: ResolvedGitLabRegistry,
     http: HttpClient,
     fs: FileSystem,
     tar: TarOperations
   ) {
-    if (!registry.project) {
-      throw new Error("GitLab registry requires 'project' field in config");
-    }
-
     this.host = normalizeHost(registry.host);
     // URL-encode the project path for API calls
     // GitLab API accepts both numeric IDs and URL-encoded paths

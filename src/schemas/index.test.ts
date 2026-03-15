@@ -607,7 +607,7 @@ describe("schemas", () => {
   });
 
   describe("RegistryEntrySchema", () => {
-    test("parses gitlab registry", () => {
+    test("parses gitlab registry with required project", () => {
       const entry = {
         type: "gitlab" as const,
         project: "myteam/artifacts",
@@ -632,13 +632,37 @@ describe("schemas", () => {
       expect(result.host).toBe("gitlab.company.com");
     });
 
-    test("accepts all valid types", () => {
-      const types = ["gitlab", "github", "default"] as const;
+    test("parses github registry with required project", () => {
+      const entry = {
+        type: "github" as const,
+        project: "myorg",
+      };
 
-      for (const type of types) {
-        const result = RegistryEntrySchema.parse({ type });
-        expect(result.type).toBe(type);
-      }
+      const result = RegistryEntrySchema.parse(entry);
+
+      expect(result.type).toBe("github");
+      expect(result.project).toBe("myorg");
+    });
+
+    test("parses default registry without project", () => {
+      const entry = { type: "default" as const };
+
+      const result = RegistryEntrySchema.parse(entry);
+
+      expect(result.type).toBe("default");
+      expect(result.project).toBeUndefined();
+    });
+
+    test("rejects gitlab without project", () => {
+      const entry = { type: "gitlab" as const };
+
+      expect(() => RegistryEntrySchema.parse(entry)).toThrow();
+    });
+
+    test("rejects github without project", () => {
+      const entry = { type: "github" as const };
+
+      expect(() => RegistryEntrySchema.parse(entry)).toThrow();
     });
   });
 

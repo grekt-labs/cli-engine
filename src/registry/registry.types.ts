@@ -12,17 +12,30 @@ export type { LocalConfig, RegistryEntry } from "#/schemas";
 export type RegistryType = "gitlab" | "github" | "default";
 
 /**
- * Normalized registry configuration.
- * Created by resolver from raw config, used by factory to create clients.
+ * Shared fields for all resolved registry configurations.
  */
-export interface ResolvedRegistry {
-  type: RegistryType;
+interface ResolvedRegistryBase {
   host: string;
-  project?: string;
   token?: string;
-  prefix?: string; // Package name prefix (e.g., "frontend" → "frontend-artifact-name")
+  prefix?: string; // Artifact name prefix (e.g., "frontend" → "frontend-artifact-name")
   apiBasePath?: string; // REST API base path for default registry (e.g., "/functions/v1")
 }
+
+/**
+ * Normalized registry configuration.
+ * Created by resolver from raw config, used by factory to create clients.
+ *
+ * Uses discriminated union: project is guaranteed for gitlab/github types,
+ * eliminating runtime null checks in registry clients.
+ */
+export type ResolvedGitLabRegistry = ResolvedRegistryBase & { type: "gitlab"; project: string };
+export type ResolvedGitHubRegistry = ResolvedRegistryBase & { type: "github"; project: string };
+export type ResolvedDefaultRegistry = ResolvedRegistryBase & { type: "default"; project?: string };
+
+export type ResolvedRegistry =
+  | ResolvedGitLabRegistry
+  | ResolvedGitHubRegistry
+  | ResolvedDefaultRegistry;
 
 /**
  * Result from download operation

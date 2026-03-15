@@ -7,14 +7,18 @@ import {
   createMockTarOperations,
   jsonResponse,
 } from "#/test-utils/mocks";
-import type { ResolvedRegistry } from "../registry.types";
+import type { ResolvedGitHubRegistry } from "../registry.types";
 
 describe("GitHubRegistryClient", () => {
-  const createClient = (registry: Partial<ResolvedRegistry> = {}) => {
-    const fullRegistry: ResolvedRegistry = {
-      type: "github",
-      host: "ghcr.io",
-      project: "myorg",
+  const defaultGitHubRegistry: ResolvedGitHubRegistry = {
+    type: "github",
+    host: "ghcr.io",
+    project: "myorg",
+  };
+
+  const createClient = (registry: Partial<ResolvedGitHubRegistry> = {}) => {
+    const fullRegistry: ResolvedGitHubRegistry = {
+      ...defaultGitHubRegistry,
       ...registry,
     };
     const http = createMockHttpClient();
@@ -31,37 +35,8 @@ describe("GitHubRegistryClient", () => {
     };
   };
 
-  describe("constructor", () => {
-    test("throws when project field is missing", () => {
-      const registry: ResolvedRegistry = {
-        type: "github",
-        host: "ghcr.io",
-        // project is missing
-      };
-      const http = createMockHttpClient();
-      const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
-
-      expect(
-        () => new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations())
-      ).toThrow("GitHub registry requires 'project' field in config");
-    });
-
-    test("accepts registry with project field", () => {
-      const registry: ResolvedRegistry = {
-        type: "github",
-        host: "ghcr.io",
-        project: "myorg",
-      };
-      const http = createMockHttpClient();
-      const fs = createMockFileSystem();
-      const shell = createMockShellExecutor();
-
-      expect(
-        () => new GitHubRegistryClient(registry, http, fs, shell, createMockTarOperations())
-      ).not.toThrow();
-    });
-  });
+  // constructor: project is now required by the type system (discriminated union)
+  // so runtime null checks are no longer needed
 
   describe("prefix configuration", () => {
     test("prepends prefix to repository name when configured", async () => {
@@ -78,7 +53,7 @@ describe("GitHubRegistryClient", () => {
         return jsonResponse({ tags: [] });
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -104,7 +79,7 @@ describe("GitHubRegistryClient", () => {
         return jsonResponse({ tags: [] });
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -130,7 +105,7 @@ describe("GitHubRegistryClient", () => {
         return jsonResponse({ tags: [] });
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -175,7 +150,7 @@ describe("GitHubRegistryClient", () => {
       const shell = createMockShellExecutor({ tar: "" });
       fs.files.set("/target/file.md", { content: "content", isDirectory: false });
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -201,7 +176,7 @@ describe("GitHubRegistryClient", () => {
         return jsonResponse({});
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -221,7 +196,7 @@ describe("GitHubRegistryClient", () => {
         return jsonResponse({});
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -290,7 +265,7 @@ describe("GitHubRegistryClient", () => {
         });
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -362,7 +337,7 @@ describe("GitHubRegistryClient", () => {
         return new Response("Forbidden", { status: 403 });
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -395,7 +370,7 @@ describe("GitHubRegistryClient", () => {
     });
 
     test("returns error when oras is not installed", async () => {
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",
@@ -426,7 +401,7 @@ describe("GitHubRegistryClient", () => {
     });
 
     test("passes relative tarball path to oras", async () => {
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitHubRegistry = {
         type: "github",
         host: "ghcr.io",
         project: "myorg",

@@ -8,17 +8,21 @@ import {
   binaryResponse,
   errorResponse,
 } from "#/test-utils/mocks";
-import type { ResolvedRegistry } from "../registry.types";
+import type { ResolvedGitLabRegistry } from "../registry.types";
 
 describe("GitLabRegistryClient", () => {
+  const defaultGitLabRegistry: ResolvedGitLabRegistry = {
+    type: "gitlab",
+    host: "gitlab.com",
+    project: "group/project",
+  };
+
   const createClient = (
-    registry: Partial<ResolvedRegistry> = {},
+    registry: Partial<ResolvedGitLabRegistry> = {},
     httpResponses = new Map<string, Response | (() => Response)>()
   ) => {
-    const fullRegistry: ResolvedRegistry = {
-      type: "gitlab",
-      host: "gitlab.com",
-      project: "group/project",
+    const fullRegistry: ResolvedGitLabRegistry = {
+      ...defaultGitLabRegistry,
       ...registry,
     };
     const http = createMockHttpClient(httpResponses);
@@ -34,31 +38,6 @@ describe("GitLabRegistryClient", () => {
   };
 
   describe("constructor", () => {
-    test("throws when project field is missing", () => {
-      const registry: ResolvedRegistry = {
-        type: "gitlab",
-        host: "gitlab.com",
-        // project is missing
-      };
-      const http = createMockHttpClient();
-      const fs = createMockFileSystem();
-      expect(
-        () => new GitLabRegistryClient(registry, http, fs, createMockTarOperations())
-      ).toThrow("GitLab registry requires 'project' field in config");
-    });
-
-    test("accepts registry with project field", () => {
-      const registry: ResolvedRegistry = {
-        type: "gitlab",
-        host: "gitlab.com",
-        project: "group/project",
-      };
-      const http = createMockHttpClient();
-      const fs = createMockFileSystem();
-      expect(
-        () => new GitLabRegistryClient(registry, http, fs, createMockTarOperations())
-      ).not.toThrow();
-    });
 
     test("normalizes host by stripping https:// prefix", async () => {
       let requestedUrl = "";
@@ -69,7 +48,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "https://gitlab.example.com",
         project: "group/project",
@@ -91,7 +70,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "http://gitlab.internal",
         project: "group/project",
@@ -113,7 +92,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/subgroup/project",
@@ -134,7 +113,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "/group/subgroup/project",
@@ -155,7 +134,7 @@ describe("GitLabRegistryClient", () => {
         throw new Error("fetch failed");
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.unreachable.com",
         project: "group/project",
@@ -172,7 +151,7 @@ describe("GitLabRegistryClient", () => {
       const http = createMockHttpClient();
       http.fetch = async () => errorResponse(401, "Unauthorized");
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -269,7 +248,7 @@ describe("GitLabRegistryClient", () => {
 
       const fs = createMockFileSystem();
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.mycompany.com",
         project: "team/artifacts",
@@ -328,7 +307,7 @@ describe("GitLabRegistryClient", () => {
         return errorResponse(404, "Not Found");
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -361,7 +340,7 @@ describe("GitLabRegistryClient", () => {
         "/path/to/tarball.tar.gz": Buffer.from("tarball content"),
       });
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -480,7 +459,7 @@ describe("GitLabRegistryClient", () => {
         return errorResponse(404, "Not Found");
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -496,7 +475,7 @@ describe("GitLabRegistryClient", () => {
       const http = createMockHttpClient();
       http.fetch = async () => errorResponse(404, "Not Found");
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -519,7 +498,7 @@ describe("GitLabRegistryClient", () => {
         return new Response(null, { status: 200 });
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -600,7 +579,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -623,7 +602,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -646,7 +625,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -671,7 +650,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -694,7 +673,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -730,7 +709,7 @@ describe("GitLabRegistryClient", () => {
       const fs = createMockFileSystem();
       fs.files.set("/target/file.md", { content: "content", isDirectory: false });
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -762,7 +741,7 @@ describe("GitLabRegistryClient", () => {
         "/path/to/tarball.tar.gz": Buffer.from("tarball content"),
       });
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
@@ -786,7 +765,7 @@ describe("GitLabRegistryClient", () => {
         return jsonResponse([]);
       };
 
-      const registry: ResolvedRegistry = {
+      const registry: ResolvedGitLabRegistry = {
         type: "gitlab",
         host: "gitlab.com",
         project: "group/project",
