@@ -12,7 +12,7 @@
  */
 
 import type { HttpClient } from "#/core";
-import type { ResolvedRegistry } from "../registry.types";
+import type { ResolvedGitHubRegistry } from "../registry.types";
 import type { RegistryBrowser, BrowseResult, BrowsedArtifact } from "../browse.types";
 import { ArtifactManifestSchema } from "#/schemas";
 import { parse as parseYaml } from "yaml";
@@ -48,11 +48,7 @@ export class GitHubRepositoryBrowser implements RegistryBrowser {
   private token?: string;
   private http: HttpClient;
 
-  constructor(registry: ResolvedRegistry, http: HttpClient) {
-    if (!registry.project) {
-      throw new Error("GitHub browser requires 'project' field (owner/repo format)");
-    }
-
+  constructor(registry: ResolvedGitHubRegistry, http: HttpClient) {
     this.apiHost = resolveApiHost(registry.host);
     this.token = registry.token;
     this.http = http;

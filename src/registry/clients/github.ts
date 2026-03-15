@@ -14,7 +14,7 @@ import { relative } from "path";
 import { validateTarballContents, generateSecureTempPath, type FileSystem, type HttpClient, type ShellExecutor, type TarOperations } from "#/core";
 import type {
   RegistryClient,
-  ResolvedRegistry,
+  ResolvedGitHubRegistry,
   DownloadResult,
   PublishResult,
   RegistryArtifactInfo,
@@ -38,18 +38,12 @@ export class GitHubRegistryClient implements RegistryClient {
   private ociClient: OciClient;
 
   constructor(
-    registry: ResolvedRegistry,
+    registry: ResolvedGitHubRegistry,
     http: HttpClient,
     fs: FileSystem,
     shell: ShellExecutor,
     tar: TarOperations
   ) {
-    if (!registry.project) {
-      throw new Error(
-        "GitHub registry requires 'project' field in config (your GHCR namespace, e.g., 'myorg' for ghcr.io/myorg/*)"
-      );
-    }
-
     this.host = registry.host || DEFAULT_GHCR_HOST;
     this.token = registry.token;
     this.prefix = registry.prefix;

@@ -105,14 +105,17 @@ export function resolveRegistry(
     }
   }
 
-  return {
-    type: entry.type,
-    host: entry.host || getDefaultHost(entry.type),
-    project: entry.project,
-    token,
-    prefix: entry.prefix,
-    apiBasePath: entry.type === "default" ? DEFAULT_REGISTRY_API_PATH : undefined,
-  };
+  const host = entry.host || getDefaultHost(entry.type);
+  const base = { host, token, prefix: entry.prefix };
+
+  switch (entry.type) {
+    case "gitlab":
+      return { ...base, type: "gitlab" as const, project: entry.project };
+    case "github":
+      return { ...base, type: "github" as const, project: entry.project };
+    case "default":
+      return { ...base, type: "default" as const, project: entry.project, apiBasePath: DEFAULT_REGISTRY_API_PATH };
+  }
 }
 
 /**

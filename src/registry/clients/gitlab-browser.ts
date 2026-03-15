@@ -12,7 +12,7 @@
  */
 
 import type { HttpClient } from "#/core";
-import type { ResolvedRegistry } from "../registry.types";
+import type { ResolvedGitLabRegistry } from "../registry.types";
 import type { RegistryBrowser, BrowseResult, BrowsedArtifact } from "../browse.types";
 import { ArtifactManifestSchema } from "#/schemas";
 import { parse as parseYaml } from "yaml";
@@ -34,11 +34,7 @@ export class GitLabRepositoryBrowser implements RegistryBrowser {
   private token?: string;
   private http: HttpClient;
 
-  constructor(registry: ResolvedRegistry, http: HttpClient) {
-    if (!registry.project) {
-      throw new Error("GitLab browser requires 'project' field in config");
-    }
-
+  constructor(registry: ResolvedGitLabRegistry, http: HttpClient) {
     this.host = normalizeHost(registry.host);
     this.encodedProject = encodeURIComponent(normalizeProject(registry.project));
     this.token = registry.token;
